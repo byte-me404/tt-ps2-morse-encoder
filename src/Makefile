@@ -9,7 +9,7 @@ TOPLEVEL_LANG ?= verilog
 ifneq ($(GATES),yes)
 
 # this is the only part you should need to modify:
-VERILOG_SOURCES += $(PWD)/tb.v $(PWD)/tt_um_seven_segment_seconds.v $(PWD)/decoder.v
+VERILOG_SOURCES += $(PWD)/tb.v $(PWD)/tt_um_ps2_morse_decoder.v $(PWD)/decoder.v
 
 else
 
@@ -22,7 +22,7 @@ COMPILE_ARGS    += -DUNIT_DELAY=\#1
 VERILOG_SOURCES += $(PDK_ROOT)/sky130A/libs.ref/sky130_fd_sc_hd/verilog/primitives.v
 VERILOG_SOURCES += $(PDK_ROOT)/sky130A/libs.ref/sky130_fd_sc_hd/verilog/sky130_fd_sc_hd.v
 
-# this gets copied in by the GDS action workflow
+# this gets copied in by the GDS action workflow
 VERILOG_SOURCES += $(PWD)/tb.v $(PWD)/gate_level_netlist.v
 endif
 

@@ -6,9 +6,9 @@ project:
 # If using an HDL, set wokwi_id as 0 and uncomment and list your source files here. 
 # Source files must be in ./src and you must list each source file separately
   source_files:        
-    - tt_um_seven_segment_seconds.v
+    - tt_um_ps2_morse_decoder.v
     - decoder.v
-  top_module:  "tt_um_seven_segment_seconds"      # Put the name of your top module here, must start with "tt_um_". Make it unique by including your github username
+  top_module:  "tt_um_ps2_morse_decoder"      # Put the name of your top module here, must start with "tt_um_". Make it unique by including your github username
 
 # How many tiles your design occupies? A single tile is about 167x108 uM.
   tiles: "1x1"    # Valid values: 1x1, 1x2, 2x2, 3x2, 4x2 or 8x2
@@ -21,10 +21,10 @@ yaml_version: 4
 #
 # Here is a great example: https://github.com/davidsiaw/tt02-davidsiaw-stackcalc/blob/38c5647f83aad2aec675d566aa3d67b98f0aac81/info.yaml
 documentation: 
-  author:       "Matt Venn"      # Your name
-  title:        "7 segment seconds (Verilog Demo)"      # Project title
+  author:       "Daniel Baumgartner"      # Your name
+  title:        "PS/2 Keyboard to Morse Code Decoder"      # Project title
   language:     "Verilog" # other examples include Verilog, Amaranth, VHDL, etc
-  description:  "Count up to 10, one second at a time."      # Short description of what your project does
+  description:  "PS/2 Keyboard to Morse Code Decoder"      # Short description of what your project does
 
 # Longer description of how the project works. You can use standard markdown format.
   how_it_works: |
@@ -77,7 +77,7 @@ documentation:
     - second counter bit 7
 
 # The following fields are optional
-  tag:          "timer, test"      # comma separated list of tags: test, encryption, experiment, clock, animation, utility, industrial, pwm, fpga, alu, microprocessor, risc, riscv, sensor, signal generator, fft, filter, music, bcd, sound, serial, timer, random number generator, calculator, decoder, counter, puzzle, multiplier, game, oscillator,
+  tag:          "ps/2, morse code, keyboard"      # comma separated list of tags: test, encryption, experiment, clock, animation, utility, industrial, pwm, fpga, alu, microprocessor, risc, riscv, sensor, signal generator, fft, filter, music, bcd, sound, serial, timer, random number generator, calculator, decoder, counter, puzzle, multiplier, game, oscillator,
   external_hw:  ""      # Describe any external hardware needed
   discord:      "mattvenn"      # Your discord handle, used for communication and automatically assigning tapeout role after a submission
   doc_link:     ""      # URL to longer form documentation, eg the README.md in your repository
