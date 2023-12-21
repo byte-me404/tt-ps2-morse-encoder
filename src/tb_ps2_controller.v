@@ -10,14 +10,16 @@ module tb_ps2_controller;
     reg        clk = 1'b0;
     reg        rst = 1'b1;
     
-    reg       ps2_clk_tmp;
-    reg       ps2_data_tmp;
+    wire        ps2_clk;
+    wire        ps2_data;
+    reg 		ps2_clk_tmp  = 1'b0;
+    reg			ps2_data_tmp = 1'b0;
     
     wire [7:0] test_received_data;
     wire       test_received_data_strb;
     wire       test_morse_code_out;
     
-    parameter BUFFER_LENGTH = 8;
+    parameter  BUFFER_LENGTH = 8;
 
     
     // DUT
@@ -27,8 +29,8 @@ module tb_ps2_controller;
         .rst(rst),
         
         // Bidirectionals
-        .ps2_clk(ps2_clk_tmp),
-        .ps2_data(ps2_data_tmp),
+        .ps2_clk(ps2_clk),
+        .ps2_data(ps2_data),
         
         // Outputs
         .ps2_received_data(test_received_data),

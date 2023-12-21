@@ -9,7 +9,6 @@ module ps2_data_input (
     input            rst,
     input            start_receiving_data,
     input            ps2_clk_posedge,
-    input            ps2_clk_negedge,
     input            ps2_data,
 
     // Outputs

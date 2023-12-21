@@ -7,8 +7,6 @@ module ps2_controller (
     // Inputs
     input        clk,
     input        rst,
-
-    // Bidirectionals
     input        ps2_clk,
     input        ps2_data,
 
@@ -24,7 +22,6 @@ module ps2_controller (
 
     // Internal Wires
     wire ps2_clk_posedge;
-    wire ps2_clk_negedge;
     wire start_receiving_data;
 
     // Internal Registers
@@ -85,7 +82,6 @@ module ps2_controller (
 
     // Combinational logic
     assign ps2_clk_posedge      = (ps2_clk_reg && !last_ps2_clk) ? 1'b1 : 1'b0;
-    assign ps2_clk_negedge      = (!ps2_clk_reg && last_ps2_clk) ? 1'b1 : 1'b0;
     assign start_receiving_data = (ps2_state == PS2_STATE_1_DATA_IN);
 
 
@@ -95,7 +91,6 @@ module ps2_controller (
         .rst                    (rst),
         .start_receiving_data   (start_receiving_data),
         .ps2_clk_posedge        (ps2_clk_posedge),
-        .ps2_clk_negedge        (ps2_clk_negedge),
         .ps2_data               (ps2_data_reg),
 
         // Outputs
