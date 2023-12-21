@@ -1,7 +1,7 @@
 `default_nettype none
 
 
-module data_control #(parameter BUFFER_LENGTH = 16) (
+module data_control #(parameter BUFFER_LENGTH = 8) (
     // Inputs
     input       clk,
     input       rst,
@@ -13,13 +13,13 @@ module data_control #(parameter BUFFER_LENGTH = 16) (
 );
 
     localparam SIZE_DATA_COUNTER   = $clog2(BUFFER_LENGTH);
-    localparam SIZE_TIMING_COUNTER = $clog2(10000000);                  //50000000
+    localparam SIZE_TIMING_COUNTER = $clog2(50000000);                      //50000000	10000000
 
-    localparam [SIZE_TIMING_COUNTER-1:0] DIT_TIME             = 40000;  // 4000000
-    localparam [SIZE_TIMING_COUNTER-1:0] DAH_TIME             = 80000;  // 12000000
-    localparam [SIZE_TIMING_COUNTER-1:0] BETWEEN_DIT_DAH_TIME = 10000;  // 4000000
-    localparam [SIZE_TIMING_COUNTER-1:0] BETWEEN_CHAR_TIME    = 40000;  // 12000000
-    localparam [SIZE_TIMING_COUNTER-1:0] SPACE_TIME           = 80000;  // 28000000
+    localparam [SIZE_TIMING_COUNTER-1:0] DIT_TIME             = 4000000;    // 4000000	40000
+    localparam [SIZE_TIMING_COUNTER-1:0] DAH_TIME             = 12000000;   // 12000000	80000
+    localparam [SIZE_TIMING_COUNTER-1:0] BETWEEN_DIT_DAH_TIME = 4000000;  	// 4000000	10000
+    localparam [SIZE_TIMING_COUNTER-1:0] BETWEEN_CHAR_TIME    = 12000000;   // 12000000	40000
+    localparam [SIZE_TIMING_COUNTER-1:0] SPACE_TIME           = 28000000;   // 28000000	80000
     
     localparam BREAK_CODE = 8'hf0;
     localparam ENTER      = 8'h5A;
