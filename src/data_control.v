@@ -1,6 +1,6 @@
 `default_nettype none
-`ifndef __DATA_CONTROL__
-`define __DATA_CONTROL__
+`ifndef __DATA_CONTROLLER__
+`define __DATA_CONTROLLER__
 
 
 module data_control #(parameter BUFFER_LENGTH = 16) (
@@ -11,10 +11,10 @@ module data_control #(parameter BUFFER_LENGTH = 16) (
     input       ps2_received_data_strb,
 
     // Output
-    output        morse_code_out
+    output      morse_code_out
 );
 
-    localparam SIZE_DATA_COUNTER = $clog2(BUFFER_LENGTH);
+    localparam SIZE_DATA_COUNTER   = $clog2(BUFFER_LENGTH);
     localparam SIZE_TIMING_COUNTER = $clog2(10000000);  //50000000
 
     localparam [SIZE_TIMING_COUNTER-1:0] DIT_TIME             = 40000;  // 4000000
@@ -1167,5 +1167,4 @@ endmodule
 
 `endif
 `default_nettype wire
-
-                       
+                      

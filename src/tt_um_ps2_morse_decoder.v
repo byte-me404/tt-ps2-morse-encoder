@@ -16,6 +16,7 @@ module tt_um_ps2_morse_decoder #( parameter MAX_COUNT = 24'd10_000_000 ) (
 	wire [7:0] test_received_data;
     wire       test_received_data_strb;
     
+    parameter BUFFER_LENGTH = 16;
     
     // DUT
     ps2_controller ps2_controller_DUT (
