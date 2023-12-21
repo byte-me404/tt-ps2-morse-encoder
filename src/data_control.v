@@ -142,28 +142,31 @@ module data_control #(parameter BUFFER_LENGTH = 8) (
                     end
                 end
             DATA_STATE_4_DATA_OUT:
-                begin         
-                    
+                begin
                     if (timing_counter == {SIZE_TIMING_COUNTER{1'b1}})
                         next_timing_counter = {SIZE_TIMING_COUNTER{1'b0}};
                     else
                         next_timing_counter = timing_counter + {{(SIZE_TIMING_COUNTER-1){1'b0}}, 1'b1};
-
-                    if (data_counter == {SIZE_DATA_COUNTER{1'b0}}) begin
-                        next_data_counter = {SIZE_DATA_COUNTER{1'b1}};
-                        next_data_shift_reg = {BUFFER_LENGTH*8{1'b0}};
-                        next_data_handler_state = DATA_STATE_0_IDLE;
-                    end else
+                    
+                    if (scancode != DEFAULT_SCANCODE)
                         next_data_handler_state = DATA_STATE_4_DATA_OUT;
-                        
-                        
+                    
+                    
                     case(scancode)
                         DEFAULT_SCANCODE:
                             begin
-                                next_timing_counter = {SIZE_TIMING_COUNTER{1'b0}};
-                                next_data_counter = data_counter - {{(SIZE_DATA_COUNTER-1){1'b0}}, 1'b1};
+                                if (data_counter == {SIZE_DATA_COUNTER{1'b0}}) begin
+                                    next_data_counter = {SIZE_DATA_COUNTER{1'b1}};
+                                    next_data_shift_reg = {BUFFER_LENGTH*8{1'b0}};
+                                    next_data_handler_state = DATA_STATE_0_IDLE;
+                                end else begin
+                                    next_data_counter = data_counter - {{(SIZE_DATA_COUNTER-1){1'b0}}, 1'b1};
+                                    next_data_handler_state = DATA_STATE_4_DATA_OUT;
+                                end
                                 
-                                next_tmp_data_shift_reg = data_shift_reg >> (data_counter - 2 - {{(SIZE_DATA_COUNTER-1){1'b0}}, 1'b1}) * 8;
+                                next_timing_counter = {SIZE_TIMING_COUNTER{1'b0}};
+                                
+                                next_tmp_data_shift_reg = data_shift_reg >> (data_counter - 1 - {{(SIZE_DATA_COUNTER-1){1'b0}}, 1'b1}) * 8;
                                 next_scancode = tmp_data_shift_reg[7:0];
                             end
                         8'h1C:    // A
