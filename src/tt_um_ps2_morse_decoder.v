@@ -18,8 +18,9 @@ module tt_um_ps2_morse_decoder #( parameter MAX_COUNT = 24'd10_000_000 ) (
     
     parameter BUFFER_LENGTH = 16;
     
-    assign uo_out[7:1] = 7'b1111111;
-    assign uio_oe[7:1] = 8'b11111111;
+    assign uo_out [7:1] = 7'b1111111;
+    assign uio_out[7:1] = 8'b11111111;
+    assign uio_oe [7:1] = 8'b11111111;
     
     // DUT
     ps2_controller ps2_controller_DUT (
