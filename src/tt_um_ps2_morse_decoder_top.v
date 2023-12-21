@@ -16,7 +16,7 @@ module tt_um_ps2_morse_decoder_top (
 	wire [7:0] test_received_data;
     wire       test_received_data_strb;
     
-    parameter BUFFER_LENGTH = 12;
+    parameter BUFFER_LENGTH = 14;
     
     assign uo_out [7:1] = 7'b1111111;
     assign uio_out[7:0] = 8'b11111111;
