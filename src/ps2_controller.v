@@ -1,6 +1,4 @@
 `default_nettype none
-`ifndef __PS2_CONTROLLER__
-`define __PS2_CONTROLLER__
 
 
 module ps2_controller (
@@ -99,5 +97,3 @@ module ps2_controller (
     );
 endmodule
 
-`endif
-`default_nettype wire

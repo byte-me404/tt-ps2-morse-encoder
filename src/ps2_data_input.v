@@ -1,6 +1,4 @@
 `default_nettype none
-`ifndef __PS2_DATA_INPUT__
-`define __PS2_DATA_INPUT__
 
 
 module ps2_data_input (
@@ -112,7 +110,4 @@ module ps2_data_input (
             ps2_received_data_strb <= 1'b0;
     end
 endmodule
-
-`endif
-`default_nettype wire
 

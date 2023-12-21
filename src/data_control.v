@@ -1,6 +1,4 @@
 `default_nettype none
-`ifndef __DATA_CONTROLLER__
-`define __DATA_CONTROLLER__
 
 
 module data_control #(parameter BUFFER_LENGTH = 16) (
@@ -1165,6 +1163,3 @@ module data_control #(parameter BUFFER_LENGTH = 16) (
     
 endmodule
 
-`endif
-`default_nettype wire
-                      
