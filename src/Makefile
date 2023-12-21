@@ -9,7 +9,8 @@ TOPLEVEL_LANG ?= verilog
 ifneq ($(GATES),yes)
 
 # this is the only part you should need to modify:
-VERILOG_SOURCES += $(PWD)/tb.v $(PWD)/tt_um_ps2_morse_decoder.v $(PWD)/decoder.v
+VERILOG_SOURCES += $(PWD)/tt_um_ps2_morse_decoder.v $(PWD)/ps2_controller.v $(PWD)/ps2_data_input.v $(PWD)/data_control.v
+
 
 else
 
