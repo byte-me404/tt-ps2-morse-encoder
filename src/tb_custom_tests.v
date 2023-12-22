@@ -54,7 +54,7 @@ module tb_custom_tests;
     tone_generator tone_generator_DUT (
         // Inputs
         .clk(clk),
-        .rst(reset),
+        .rst(rst),
         .dit(dit_out),
         .dah(dah_out),
         
