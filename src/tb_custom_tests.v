@@ -22,6 +22,7 @@ module tb_custom_tests;
     wire	   dit_out;
     wire       dah_out;
     wire       morse_code_out;
+    wire       morse_tone_out;
     
     
     // DUT
@@ -48,7 +49,8 @@ module tb_custom_tests;
         
         // Outputs
         .dit_out(dit_out),
-        .dah_out(dah_out)
+        .dah_out(dah_out),
+        .morse_code_out(morse_code_out)
     );
 
     tone_generator tone_generator_DUT (
@@ -59,7 +61,7 @@ module tb_custom_tests;
         .dah(dah_out),
         
         // Outputs
-        .tone_out(morse_code_out)
+        .tone_out(morse_tone_out)
     );
 
     /* verilator lint_off STMTDLY */
