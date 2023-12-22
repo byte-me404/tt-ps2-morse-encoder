@@ -27,7 +27,7 @@ module tb ();
     wire [7:0] uio_out;
     wire [7:0] uio_oe;
 
-    tt_um_ps2_morse_decoder_top tt_um_ps2_morse_decoder_top (
+    tt_um_ps2_morse_encoder_top tt_um_ps2_morse_encoder_top (
     // include power ports for the Gate Level test
     `ifdef GL_TEST
         .VPWR( 1'b1),
