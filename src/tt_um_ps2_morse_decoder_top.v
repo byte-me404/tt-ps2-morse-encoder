@@ -18,7 +18,7 @@ module tt_um_ps2_morse_decoder_top (
     
     parameter BUFFER_LENGTH = 10;
     
-    assign uo_out [7:3] = 7'b11111;
+    assign uo_out [7:3] = 5'b11111;
     assign uio_out[7:0] = 8'b11111111;
     assign uio_oe [7:0] = 8'b11111111;
     
@@ -30,7 +30,7 @@ module tt_um_ps2_morse_decoder_top (
         
         // Bidirectionals
         .ps2_clk(ui_in[0]),
-        .ps2_data(ui_in[0]),
+        .ps2_data(ui_in[1]),
         
         // Outputs
         .ps2_received_data(test_received_data),
