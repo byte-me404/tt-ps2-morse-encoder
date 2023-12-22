@@ -13,8 +13,8 @@ module tone_generator (
 );
 
     // Local Parameters
-    localparam SIZE_COUNTER = 17;
-    localparam MAX_COUNT    = 17'h14585;     // 600Hz with 50MHz Clock
+    localparam SIZE_COUNTER = 16;
+    localparam MAX_COUNT    = 16'hA2C2;     // 600Hz with 50MHz Clock
 
     // Internal Registers
     reg [SIZE_COUNTER-1:0] counter;
