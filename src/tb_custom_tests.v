@@ -7,22 +7,21 @@
 
 module tb_custom_tests;
 
-    reg        clk = 1'b0;
-    reg        rst = 1'b1;
+    reg         clk = 1'b0;
+    reg         rst = 1'b1;
     
     wire        ps2_clk;
     wire        ps2_data;
     reg 		ps2_clk_tmp  = 1'b0;
     reg			ps2_data_tmp = 1'b0;
     
-    wire [7:0] test_received_data;
-    wire       test_received_data_strb;
+    wire [7:0] ps2_received_data;
+    wire       ps2_received_data_strb;
     
-    wire	   test_dit_out;
-    wire       test_dah_out;
-    wire       test_morse_code_out;
+    wire	   dit_out;
+    wire       dah_out;
+    wire       morse_code_out;
     
-
     
     // DUT
     ps2_controller ps2_controller_DUT (
@@ -35,20 +34,31 @@ module tb_custom_tests;
         .ps2_data(ps2_data),
         
         // Outputs
-        .ps2_received_data(test_received_data),
-        .ps2_received_data_strb(test_received_data_strb)
+        .ps2_received_data(ps2_received_data),
+        .ps2_received_data_strb(ps2_received_data_strb)
     );
 
     morse_code_encoder morse_code_encoder_DUT (
         // Inputs
         .clk(clk),
         .rst(rst),
-        .ps2_received_data(test_received_data),
-        .ps2_received_data_strb(test_received_data_strb),
+        .ps2_received_data(ps2_received_data),
+        .ps2_received_data_strb(ps2_received_data_strb),
         
         // Outputs
-        .dit_out(test_dit_out),
-        .dah_out(test_dah_out)
+        .dit_out(dit_out),
+        .dah_out(dah_out)
+    );
+
+    tone_generator tone_generator_DUT (
+        // Inputs
+        .clk(clk),
+        .rst(reset),
+        .dit(dit_out),
+        .dah(dah_out),
+        
+        // Outputs
+        .tone_out(morse_code_out)
     );
 
     /* verilator lint_off STMTDLY */

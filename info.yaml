@@ -10,6 +10,7 @@ project:
     - ps2_controller.v
     - ps2_data_input.v
     - morse_code_encoder.v
+    - tone_generator.v
   top_module:  "tt_um_ps2_morse_encoder_top"      # Put the name of your top module here, must start with "tt_um_". Make it unique by including your github username
 
 # How many tiles your design occupies? A single tile is about 167x108 uM.

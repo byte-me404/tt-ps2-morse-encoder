@@ -10,7 +10,8 @@ module morse_code_encoder (
 
     // Output
     output      dit_out,
-    output      dah_out
+    output      dah_out,
+    output      morse_code_out
 );
 
     // Local Parameters
@@ -953,5 +954,6 @@ module morse_code_encoder (
     
     assign dit_out = dit;
     assign dah_out = dah;
+    assign morse_code_out = dit_out | dah_out;
     
 endmodule
