@@ -22,7 +22,7 @@ module tb_ps2_controller;
     wire       test_dah_out;
     wire       test_morse_code_out;
     
-    parameter  BUFFER_LENGTH = 14;
+    parameter  BUFFER_LENGTH = 10;
 
     
     // DUT
