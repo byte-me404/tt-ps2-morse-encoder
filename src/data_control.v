@@ -9,6 +9,8 @@ module data_control #(parameter BUFFER_LENGTH = 8) (
     input       ps2_received_data_strb,
 
     // Output
+    output      dit_out,
+    output      dah_out,
     output      morse_code_out
 );
 
@@ -44,8 +46,10 @@ module data_control #(parameter BUFFER_LENGTH = 8) (
     reg operation_mode;            // 0 - Output when Enter, 1 - Ouput when Space
     reg next_operation_mode;
 
-    reg morse_code_output;
-    reg next_morse_code_output;
+    reg dit;
+    reg next_dit;
+    reg dah;
+    reg next_dah;
 
     reg [2:0] next_data_handler_state;
     reg [2:0] data_handler_state;
@@ -67,21 +71,29 @@ module data_control #(parameter BUFFER_LENGTH = 8) (
         if (rst) begin
             data_shift_reg      <= {BUFFER_LENGTH*8{1'b0}};
             tmp_data_shift_reg  <= {BUFFER_LENGTH*8{1'b0}};
+
             data_counter        <= {SIZE_DATA_COUNTER{1'b1}};
             timing_counter      <= {SIZE_TIMING_COUNTER{1'b0}};
+
             operation_mode      <= 1'b0;
-            morse_code_output   <= 1'b0;
+
+            dit                 <= 1'b0;
+            dah                 <= 1'b0;
             
             data_handler_state  <= DATA_STATE_0_IDLE;
             scancode            <= DEFAULT_SCANCODE;
         end else begin
             data_shift_reg      <= next_data_shift_reg;
             tmp_data_shift_reg  <= next_tmp_data_shift_reg;
+
             data_counter        <= next_data_counter;
             timing_counter      <= next_timing_counter;
+
             operation_mode      <= next_operation_mode;
-            morse_code_output   <= next_morse_code_output;
             
+            dit                 <= next_dit;
+            dah                 <= next_dah;
+
             data_handler_state  <= next_data_handler_state;
             scancode            <= next_scancode;
         end
@@ -91,10 +103,14 @@ module data_control #(parameter BUFFER_LENGTH = 8) (
     always @(*) begin
         next_data_shift_reg     = data_shift_reg;
         next_tmp_data_shift_reg = tmp_data_shift_reg;
+
         next_data_counter       = data_counter;
         next_timing_counter     = timing_counter;
+
         next_operation_mode     = operation_mode;
-        next_morse_code_output  = morse_code_output;
+
+        next_dit                = dit;
+        next_dah                = dah;
     
         next_data_handler_state = DATA_STATE_0_IDLE;
         next_scancode           = DEFAULT_SCANCODE;
@@ -171,981 +187,754 @@ module data_control #(parameter BUFFER_LENGTH = 8) (
                             end
                         8'h1C:    // A
                             begin
-                                if (timing_counter < DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h1C;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h1C;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DIT_TIME + DAH_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h1C;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DIT_TIME + DAH_TIME + BETWEEN_CHAR_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h1C;
-                                end else
+                                next_scancode = 8'h1C;
+                                if (timing_counter < DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DIT_TIME + DAH_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DIT_TIME + DAH_TIME + BETWEEN_CHAR_TIME)
+                                    next_dah = 1'b0;
+                                else
                                     next_scancode = DEFAULT_SCANCODE;
                             end
                         8'h32:    // B
                             begin
-                                if (timing_counter < DAH_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h32;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h32;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h32;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h32;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h32;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h32;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 3 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h32;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 3 * DIT_TIME + BETWEEN_CHAR_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h32;
-                                end else
+                                next_scancode = 8'h32;
+                                if (timing_counter < DAH_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 2 * DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 2 * DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 3 * DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 3 * DIT_TIME + BETWEEN_CHAR_TIME)
+                                    next_dit = 1'b0;
+                                else
                                     next_scancode = DEFAULT_SCANCODE;
                             end
                         8'h21:    // C
                             begin
-                                if (timing_counter < DAH_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h21;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h21;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h21;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h21;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h21;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h21;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h21;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + 2 * DIT_TIME + BETWEEN_CHAR_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h21;
-                                end else
+                                next_scancode = 8'h21;
+                                if (timing_counter < DAH_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + 2 * DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + 2 * DIT_TIME + BETWEEN_CHAR_TIME)
+                                    next_dit = 1'b0;
+                                else
                                     next_scancode = DEFAULT_SCANCODE;
                             end
                         8'h23:    // D
                             begin
-                                if (timing_counter < DAH_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h23;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h23;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h23;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h23;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h23;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 2 * DIT_TIME + BETWEEN_CHAR_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h23;
-                                end else
+                                next_scancode = 8'h23;
+                                if (timing_counter < DAH_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 2 * DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 2 * DIT_TIME + BETWEEN_CHAR_TIME)
+                                    next_dit = 1'b0;
+                                else
                                     next_scancode = DEFAULT_SCANCODE;
                             end
                         8'h24:    // E
                             begin
-                                if (timing_counter < DAH_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h24;
-                                end else if (timing_counter < DAH_TIME + BETWEEN_CHAR_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h24;
-                                end else
+                                next_scancode = 8'h24;
+                                if (timing_counter < DAH_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < DAH_TIME + BETWEEN_CHAR_TIME)
+                                    next_dit = 1'b0;
+                                else
                                     next_scancode = DEFAULT_SCANCODE;
                             end
                         8'h2B:    // F
                             begin
-                                if (timing_counter < DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h2B;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h2B;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h2B;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h2B;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h2B;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h2B;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 3 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h2B;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 3 * DIT_TIME + BETWEEN_CHAR_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h2B;
-                                end else
+                                next_scancode = 8'h2B;
+                                if (timing_counter < DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 2 * DIT_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 2 * DIT_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 3 * DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 3 * DIT_TIME + BETWEEN_CHAR_TIME)
+                                    next_dit = 1'b0;
+                                else
                                     next_scancode = DEFAULT_SCANCODE;
                             end
                         8'h34:    // G
                             begin
-                                if (timing_counter < DAH_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h34;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h34;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h34;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h34;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h34;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME + BETWEEN_CHAR_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h34;
-                                end else
+                                next_scancode = 8'h34;
+                                if (timing_counter < DAH_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME + BETWEEN_CHAR_TIME)
+                                    next_dit = 1'b0;
+                                else
                                     next_scancode = DEFAULT_SCANCODE;
                             end
                         8'h33:    // H
                             begin
-                                if (timing_counter < DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h33;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h33;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h33;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h33;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 3 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h33;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 3 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h33;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 4 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h33;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 4 * DIT_TIME + BETWEEN_CHAR_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h33;
-                                end else
+                                next_scancode = 8'h33;
+                                if (timing_counter < DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 3 * DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 3 * DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 4 * DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 4 * DIT_TIME + BETWEEN_CHAR_TIME)
+                                    next_dit = 1'b0;
+                                else
                                     next_scancode = DEFAULT_SCANCODE;
                             end
                         8'h43:    // I
                             begin
-                                if (timing_counter < DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h43;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h43;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h43;
-                                end else if (timing_counter < 1 * BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME + BETWEEN_CHAR_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h43;
-                                end else
+                                next_scancode = 8'h43;
+                                if (timing_counter < DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 1 * BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME + BETWEEN_CHAR_TIME)
+                                    next_dit = 1'b0;
+                                else
                                     next_scancode = DEFAULT_SCANCODE;
                             end
                         8'h3B:    // J
                             begin
-                                if (timing_counter < DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h3B;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h3B;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h3B;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h3B;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h3B;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h3B;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h3B;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME + DIT_TIME + BETWEEN_CHAR_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h3B;
-                                end else
+                                next_scancode = 8'h3B;
+                                if (timing_counter < DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME + DIT_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME + DIT_TIME + BETWEEN_CHAR_TIME)
+                                    next_dah = 1'b0;
+                                else
                                     next_scancode = DEFAULT_SCANCODE;
                             end
                         8'h42:    // K
                             begin
-                                if (timing_counter < DAH_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h42;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h42;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h42;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h42;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h42;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME + BETWEEN_CHAR_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h42;
-                                end else
+                                next_scancode = 8'h42;
+                                if (timing_counter < DAH_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME + BETWEEN_CHAR_TIME)
+                                    next_dah = 1'b0;
+                                else
                                     next_scancode = DEFAULT_SCANCODE;
                             end
                         8'h4B:    // L
                             begin
-                                if (timing_counter < DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h4B;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h4B;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h4B;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h4B;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h4B;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h4B;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 3 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h4B;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 3 * DIT_TIME + BETWEEN_CHAR_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h4B;
-                                end else
+                                next_scancode = 8'h4B;
+                                if (timing_counter < DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 2 * DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 2 * DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 3 * DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 3 * DIT_TIME + BETWEEN_CHAR_TIME)
+                                    next_dit = 1'b0;
+                                else
                                     next_scancode = DEFAULT_SCANCODE;
                             end
                         8'h3A:    // M
                             begin
-                                if (timing_counter < DAH_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h3A;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h3A;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h3A;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + BETWEEN_CHAR_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h3A;
-                                end else
+                                next_scancode = 8'h3A;
+                                if (timing_counter < DAH_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + BETWEEN_CHAR_TIME)
+                                    next_dah = 1'b0;
+                                else
                                     next_scancode = DEFAULT_SCANCODE;
                             end
                         8'h31:    // N
                             begin
-                                if (timing_counter < DAH_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h31;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h31;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h31;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME + BETWEEN_CHAR_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h31;
-                                end else
+                                next_scancode = 8'h31;
+                                if (timing_counter < DAH_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME + BETWEEN_CHAR_TIME)
+                                    next_dit = 1'b0;
+                                else
                                     next_scancode = DEFAULT_SCANCODE;
                             end
                         8'h44:    // O
                             begin
-                                if (timing_counter < DAH_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h44;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h44;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h44;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h44;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h44;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME + BETWEEN_CHAR_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h44;
-                                end else
+                                next_scancode = 8'h44;
+                                if (timing_counter < DAH_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME + 2 * DIT_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME + BETWEEN_CHAR_TIME)
+                                    next_dah = 1'b0;
+                                else
                                     next_scancode = DEFAULT_SCANCODE;
                             end
                         8'h4D:    // P
                             begin
-                                if (timing_counter < DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h4D;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h4D;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h4D;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h4D;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h4D;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h4D;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h4D;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + 2 * DIT_TIME + BETWEEN_CHAR_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h4D;
-                                end else
+                                next_scancode = 8'h4D;
+                                if (timing_counter < DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + 2 * DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + 2 * DIT_TIME + BETWEEN_CHAR_TIME)
+                                    next_dit = 1'b0;
+                                else
                                     next_scancode = DEFAULT_SCANCODE;
                             end
                         8'h15:    // Q
                             begin
-                                if (timing_counter < DAH_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h15;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h15;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h15;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h15;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h15;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h15;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h15;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME + DIT_TIME + BETWEEN_CHAR_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h15;
-                                end else
+                                next_scancode = 8'h15;
+                                if (timing_counter < DAH_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME + DIT_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME + DIT_TIME + BETWEEN_CHAR_TIME)
+                                    next_dah = 1'b0;
+                                else
                                     next_scancode = DEFAULT_SCANCODE;
                             end
                         8'h2D:    // R
                             begin
-                                if (timing_counter < DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h2D;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h2D;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h2D;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h2D;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h2D;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 2 * DIT_TIME + BETWEEN_CHAR_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h2D;
-                                end else
+                                next_scancode = 8'h2D;
+                                if (timing_counter < DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 2 * DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 2 * DIT_TIME + BETWEEN_CHAR_TIME)
+                                    next_dit = 1'b0;
+                                else
                                     next_scancode = DEFAULT_SCANCODE;
                             end
                         8'h1B:    // S
                             begin
-                                if (timing_counter < DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h1B;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h1B;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h1B;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h1B;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 3 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h1B;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 3 * DIT_TIME + BETWEEN_CHAR_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h1B;
-                                end else
+                                next_scancode = 8'h1B;
+                                if (timing_counter < DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 3 * DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 3 * DIT_TIME + BETWEEN_CHAR_TIME)
+                                    next_dit = 1'b0;
+                                else
                                     next_scancode = DEFAULT_SCANCODE;
                             end
                         8'h2C:    // T
                             begin
-                                if (timing_counter < DAH_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h2C;
-                                end else if (timing_counter < DAH_TIME + BETWEEN_CHAR_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h2C;
-                                end else
+                                next_scancode = 8'h2C;
+                                if (timing_counter < DAH_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < DAH_TIME + BETWEEN_CHAR_TIME)
+                                    next_dah = 1'b0;
+                                else
                                     next_scancode = DEFAULT_SCANCODE;
                             end
                         8'h3C:    // U
                             begin
-                                if (timing_counter < DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h3C;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h3C;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h3C;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h3C;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h3C;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 2 * DIT_TIME + BETWEEN_CHAR_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h3C;
-                                end else
+                                next_scancode = 8'h3C;
+                                if (timing_counter < DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 2 * DIT_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 2 * DIT_TIME + BETWEEN_CHAR_TIME)
+                                    next_dah = 1'b0;
+                                else
                                     next_scancode = DEFAULT_SCANCODE;
                             end
                         8'h2A:    // V
                             begin
-                                if (timing_counter < DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h2A;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h2A;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h2A;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h2A;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 3 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h2A;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 3 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h2A;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 3 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h2A;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 3 * DIT_TIME + BETWEEN_CHAR_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h2A;
-                                end else
+                                next_scancode = 8'h2A;
+                                if (timing_counter < DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 3 * DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 3 * DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 3 * DIT_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 3 * DIT_TIME + BETWEEN_CHAR_TIME)
+                                    next_dah = 1'b0;
+                                else
                                     next_scancode = DEFAULT_SCANCODE;
                             end
                         8'h1D:    // W
                             begin
-                                if (timing_counter < DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h1D;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h1D;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h1D;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h1D;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h1D;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME + BETWEEN_CHAR_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h1D;
-                                end else
+                                next_scancode = 8'h1D;
+                                if (timing_counter < DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME + BETWEEN_CHAR_TIME)
+                                    next_dah = 1'b0;
+                                else
                                     next_scancode = DEFAULT_SCANCODE;
                             end
                         8'h22:    // X
                             begin
-                                if (timing_counter < DAH_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h22;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h22;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h22;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h22;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h22;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h22;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h22;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + 2 * DIT_TIME + BETWEEN_CHAR_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h22;
-                                end else
+                                next_scancode = 8'h22;
+                                if (timing_counter < DAH_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 2 * DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 2 * DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + 2 * DIT_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + 2 * DIT_TIME + BETWEEN_CHAR_TIME)
+                                    next_dah = 1'b0;
+                                else
                                     next_scancode = DEFAULT_SCANCODE;
                             end
                         8'h35:    // Y
                             begin
-                                if (timing_counter < DAH_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h35;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h35;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h35;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h35;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h35;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h35;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h35;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME + DIT_TIME + BETWEEN_CHAR_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h35;
-                                end else
+                                next_scancode = 8'h35;
+                                if (timing_counter < DAH_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME + DIT_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME + DIT_TIME + BETWEEN_CHAR_TIME)
+                                    next_dah = 1'b0;
+                                else
                                     next_scancode = DEFAULT_SCANCODE;
                             end
                         8'h1A:    // Z
                             begin
-                                if (timing_counter < DAH_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h1A;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h1A;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h1A;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h1A;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h1A;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h1A;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h1A;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + 2 * DIT_TIME + BETWEEN_CHAR_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h1A;
-                                end else
+                                next_scancode = 8'h1A;
+                                if (timing_counter < DAH_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + 2 * DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + 2 * DIT_TIME + BETWEEN_CHAR_TIME)
+                                    next_dit = 1'b0;
+                                else
                                     next_scancode = DEFAULT_SCANCODE;
                             end
                         8'h45:    // 0
                             begin
-                                if (timing_counter < DAH_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h45;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h45;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h45;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h45;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h45;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h45;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 4 * DAH_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h45;
-                                end else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 4 * DAH_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h45;
-                                end else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 5 * DAH_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h45;
-                                end else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 5 * DAH_TIME + BETWEEN_CHAR_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h45;
-                                end else
+                                next_scancode = 8'h45;
+                                if (timing_counter < DAH_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 4 * DAH_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 4 * DAH_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 5 * DAH_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 5 * DAH_TIME + BETWEEN_CHAR_TIME)
+                                    next_dah = 1'b0;
+                                else
                                     next_scancode = DEFAULT_SCANCODE;
                             end
                         8'h16:    // 1
                             begin
-                                if (timing_counter < DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h16;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h16;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h16;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h16;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h16;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h16;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h16;
-                                end else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h16;
-                                end else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 4 * DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h16;
-                                end else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 4 * DAH_TIME + DIT_TIME + BETWEEN_CHAR_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h16;
-                                end else
+                                next_scancode = 8'h16;
+                                if (timing_counter < DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME + DIT_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME + DIT_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 4 * DAH_TIME + DIT_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 4 * DAH_TIME + DIT_TIME + BETWEEN_CHAR_TIME)
+                                    next_dah = 1'b0;
+                                else
                                     next_scancode = DEFAULT_SCANCODE;
                             end
                         8'h1E:    // 2
                             begin
-                                if (timing_counter < DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h1E;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h1E;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h1E;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h1E;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h1E;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h1E;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h1E;
-                                end else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h1E;
-                                end else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h1E;
-                                end else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME + 2 * DIT_TIME + BETWEEN_CHAR_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h1E;
-                                end else
+                                next_scancode = 8'h1E;
+                                if (timing_counter < DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 2 * DIT_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 2 * DIT_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + 2 * DIT_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + 2 * DIT_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME + 2 * DIT_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME + 2 * DIT_TIME + BETWEEN_CHAR_TIME)
+                                    next_dah = 1'b0;
+                                else
                                     next_scancode = DEFAULT_SCANCODE;
                             end
                         8'h26:    // 3
                             begin
-                                if (timing_counter < DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h26;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h26;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h26;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h26;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 3 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h26;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 3 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h26;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 3 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h26;
-                                end else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 3 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h26;
-                                end else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + 3 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h26;
-                                end else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + 3 * DIT_TIME + BETWEEN_CHAR_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h26;
-                                end else
+                                next_scancode = 8'h26;
+                                if (timing_counter < DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 3 * DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 3 * DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 3 * DIT_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 3 * DIT_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + 3 * DIT_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + 3 * DIT_TIME + BETWEEN_CHAR_TIME)
+                                    next_dah = 1'b0;
+                                else
                                     next_scancode = DEFAULT_SCANCODE;
                             end
                         8'h25:    // 4
                             begin
-                                if (timing_counter < DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h25;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h25;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h25;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h25;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 3 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h25;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 3 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h25;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 4 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h25;
-                                end else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 4 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h25;
-                                end else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 4 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h25;
-                                end else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 4 * DIT_TIME + BETWEEN_CHAR_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h25;
-                                end else
+                                next_scancode = 8'h25;
+                                if (timing_counter < DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 3 * DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 3 * DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 4 * DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 4 * DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 4 * DIT_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 4 * DIT_TIME + BETWEEN_CHAR_TIME)
+                                    next_dah = 1'b0;
+                                else
                                     next_scancode = DEFAULT_SCANCODE;
                             end
                         8'h2E:    // 5
                             begin
-                                if (timing_counter < DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h2E;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h2E;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h2E;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h2E;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 3 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h2E;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 3 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h2E;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 4 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h2E;
-                                end else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 4 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h2E;
-                                end else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 5 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h2E;
-                                end else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 5 * DIT_TIME + BETWEEN_CHAR_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h2E;
-                                end else
+                                next_scancode = 8'h2E;
+                                if (timing_counter < DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 3 * DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 3 * DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 4 * DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 4 * DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 5 * DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 5 * DIT_TIME + BETWEEN_CHAR_TIME)
+                                    next_dit = 1'b0;
+                                else
                                     next_scancode = DEFAULT_SCANCODE;
                             end
                         8'h36:    // 6
                             begin
-                                if (timing_counter < DAH_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h36;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h36;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h36;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h36;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h36;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h36;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 3 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h36;
-                                end else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 3 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h36;
-                                end else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 4 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h36;
-                                end else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 4 * DIT_TIME + BETWEEN_CHAR_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h36;
-                                end else
+                                next_scancode = 8'h36;
+                                if (timing_counter < DAH_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 2 * DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 2 * DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 3 * DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 3 * DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 4 * DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 4 * DIT_TIME + BETWEEN_CHAR_TIME)
+                                    next_dit = 1'b0;
+                                else
                                     next_scancode = DEFAULT_SCANCODE;
                             end
                         8'h3D:    // 7
                             begin
-                                if (timing_counter < DAH_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h3D;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h3D;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h3D;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h3D;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h3D;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h3D;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + 2 *DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h3D;
-                                end else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h3D;
-                                end else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + 3 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h3D;
-                                end else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + 3 * DIT_TIME + BETWEEN_CHAR_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h3D;
-                                end else
+                                next_scancode = 8'h3D;
+                                if (timing_counter < DAH_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + 2 *DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + 2 * DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + 3 * DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + 3 * DIT_TIME + BETWEEN_CHAR_TIME)
+                                    next_dit = 1'b0;
+                                else
                                     next_scancode = DEFAULT_SCANCODE;
                             end
                         8'h3E:    // 8
                             begin
-                                if (timing_counter < DAH_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h3E;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h3E;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h3E;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h3E;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h3E;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h3E;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h3E;
-                                end else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h3E;
-                                end else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME + 2 * DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h3E;
-                                end else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME + 2 * DIT_TIME + BETWEEN_CHAR_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h3E;
-                                end else
+                                next_scancode = 8'h3E;
+                                if (timing_counter < DAH_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b0;
+                                else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME + 2 * DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME + 2 * DIT_TIME + BETWEEN_CHAR_TIME)
+                                    next_dit = 1'b0;
+                                else
                                     next_scancode = DEFAULT_SCANCODE;
                             end
                         8'h46:    // 9
                             begin
-                                if (timing_counter < DAH_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h46;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h46;
-                                end else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h46;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h46;
-                                end else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h46;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h46;
-                                end else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 4 * DAH_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h46;
-                                end else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 4 * DAH_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h46;
-                                end else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 4 * DAH_TIME + DIT_TIME) begin
-                                    next_morse_code_output = 1'b1;
-                                    next_scancode = 8'h46;
-                                end else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 4 * DAH_TIME + DIT_TIME + BETWEEN_CHAR_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h46;
-                                end else
+                                next_scancode = 8'h46;
+                                if (timing_counter < DAH_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME)
+                                    next_dah = 1'b1;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 4 * DAH_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 4 * DAH_TIME)
+                                    next_dah = 1'b0;
+                                else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 4 * DAH_TIME + DIT_TIME)
+                                    next_dit = 1'b1;
+                                else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 4 * DAH_TIME + DIT_TIME + BETWEEN_CHAR_TIME)
+                                    next_dit = 1'b0;
+                                else
                                     next_scancode = DEFAULT_SCANCODE;
                             end
                         8'h29:    // Space
                             begin
+                                next_scancode = 8'h29;
                                 if (timing_counter < SPACE_TIME) begin
-                                    next_morse_code_output = 1'b0;
-                                    next_scancode = 8'h29;
+                                    next_dit = 1'b0;
+                                    next_dah = 1'b0;
                                 end else
                                     next_scancode = DEFAULT_SCANCODE;
                             end
@@ -1162,7 +951,8 @@ module data_control #(parameter BUFFER_LENGTH = 8) (
         endcase
     end
     
-    assign morse_code_out = morse_code_output;
+    assign dit_out        = dit;
+    assign dah_out        = dah;
+    assign morse_code_out = dit | dah;
     
 endmodule
-

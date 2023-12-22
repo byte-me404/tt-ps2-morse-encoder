@@ -18,7 +18,7 @@ module tt_um_ps2_morse_decoder_top (
     
     parameter BUFFER_LENGTH = 14;
     
-    assign uo_out [7:1] = 7'b1111111;
+    assign uo_out [7:3] = 7'b11111;
     assign uio_out[7:0] = 8'b11111111;
     assign uio_oe [7:0] = 8'b11111111;
     
@@ -45,6 +45,8 @@ module tt_um_ps2_morse_decoder_top (
         .ps2_received_data_strb(test_received_data_strb),
         
         // Outputs
+        .dit_out(uo_out[2]),
+        .dah_out(uo_out[1]),
         .morse_code_out(uo_out[0])
     );
 endmodule

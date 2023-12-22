@@ -17,6 +17,9 @@ module tb_ps2_controller;
     
     wire [7:0] test_received_data;
     wire       test_received_data_strb;
+    
+    wire	   test_dit_out;
+    wire       test_dah_out;
     wire       test_morse_code_out;
     
     parameter  BUFFER_LENGTH = 14;
@@ -45,6 +48,8 @@ module tb_ps2_controller;
         .ps2_received_data_strb(test_received_data_strb),
         
         // Outputs
+        .dit_out(test_dit_out),
+        .dah_out(test_dah_out),
         .morse_code_out(test_morse_code_out)
     );
 
