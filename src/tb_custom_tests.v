@@ -3,6 +3,7 @@
 `include "ps2_data_input.v"
 `include "ps2_controller.v"
 `include "morse_code_encoder.v"
+`include "tone_generator.v"
 
 
 module tb_custom_tests;
