@@ -36,7 +36,7 @@ module tt_um_ps2_morse_encoder_top (
         .ps2_received_data_strb(test_received_data_strb)
     );
 
-    data_control data_control_DUT (
+    morse_code_encoder morse_code_encoder_DUT (
         // Inputs
         .clk(clk),
         .rst(reset),
