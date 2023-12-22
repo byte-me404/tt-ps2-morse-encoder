@@ -13,8 +13,8 @@ module tone_generator (
 );
 
     // Local Parameters
-    localparam MAX_COUNT    = 83333;     // 600Hz with 50MHz Clock
-    localparam SIZE_COUNTER = $clog2(MAX_COUNT);
+    localparam SIZE_COUNTER = 17;
+    localparam MAX_COUNT    = 17'h14585;     // 600Hz with 50MHz Clock
 
     // Internal Registers
     reg [SIZE_COUNTER-1:0] counter;
@@ -37,11 +37,12 @@ module tone_generator (
 
     always @(*) begin
         if (dit || dah) begin
-            if (counter > MAX_COUNT) begin
+            if (counter == MAX_COUNT) begin
                 next_tone_output = ~tone_output;
                 next_counter = {SIZE_COUNTER{1'b0}};
             end else begin
                 next_counter = counter + {{(SIZE_COUNTER-1){1'b0}}, 1'b1};
+                next_tone_output = tone_output;
             end
         end else begin
             next_counter     = {SIZE_COUNTER{1'b0}};
