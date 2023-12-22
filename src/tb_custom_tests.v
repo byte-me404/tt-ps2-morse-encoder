@@ -2,10 +2,10 @@
 
 `include "ps2_data_input.v"
 `include "ps2_controller.v"
-`include "data_control.v"
+`include "morse_code_encoder.v"
 
 
-module tb_ps2_controller;
+module tb_custom_tests;
 
     reg        clk = 1'b0;
     reg        rst = 1'b1;
@@ -22,7 +22,6 @@ module tb_ps2_controller;
     wire       test_dah_out;
     wire       test_morse_code_out;
     
-    parameter  BUFFER_LENGTH = 10;
 
     
     // DUT
@@ -40,7 +39,7 @@ module tb_ps2_controller;
         .ps2_received_data_strb(test_received_data_strb)
     );
 
-    data_control #(BUFFER_LENGTH) data_control_DUT (
+    morse_code_encoder morse_code_encoder_DUT (
         // Inputs
         .clk(clk),
         .rst(rst),
@@ -49,8 +48,7 @@ module tb_ps2_controller;
         
         // Outputs
         .dit_out(test_dit_out),
-        .dah_out(test_dah_out),
-        .morse_code_out(test_morse_code_out)
+        .dah_out(test_dah_out)
     );
 
     /* verilator lint_off STMTDLY */
