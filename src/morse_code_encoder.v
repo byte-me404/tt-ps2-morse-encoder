@@ -87,7 +87,8 @@ module morse_code_encoder (
                ENCODING_STATE_2_BREAK_CODE  = 3'h2,
                ENCODING_STATE_3_BUFFER_DATA = 3'h3,
                ENCODING_STATE_4_DATA_OUT    = 3'h4;
-    localparam DEFAULT_SCANCODE             = 8'h00;
+    localparam DEFAULT_SCANCODE             = 8'hFF,
+               COUNT_DOWN                   = 8'h00;
 
     // Register process
     always @(posedge clk) begin
@@ -183,33 +184,37 @@ module morse_code_encoder (
                 end
             ENCODING_STATE_4_DATA_OUT:
                 begin
-                    if (timing_counter == {SIZE_TIMING_COUNTER{1'b1}})
+                    next_encoding_state = ENCODING_STATE_4_DATA_OUT;
+                
+                    if (timing_counter == {SIZE_TIMING_COUNTER{1'b1}}) begin
                         // Reset timing counter
                         next_timing_counter = {SIZE_TIMING_COUNTER{1'b0}};
-                    else
+                    end else begin
                         // Advance timing counter
                         next_timing_counter = timing_counter + {{(SIZE_TIMING_COUNTER-1){1'b0}}, 1'b1};
-                    if (current_scancode != DEFAULT_SCANCODE)
-                        next_encoding_state = ENCODING_STATE_4_DATA_OUT;
+                    end
 
+                    // FSM
                     case(current_scancode)
                         DEFAULT_SCANCODE:
+                            begin
+                                // Reset timing counter
+                                next_timing_counter = {SIZE_TIMING_COUNTER{1'b0}};
+                                // Get next scancode
+                                next_scancode = data_shift_reg[(data_counter+1)*8-1 -: 8];
+                            end
+                        COUNT_DOWN:
                             begin
                                 if (data_counter == {SIZE_DATA_COUNTER{1'b0}}) begin
                                     next_data_counter   = {SIZE_DATA_COUNTER{1'b1}};    // Reset data counter
                                     next_data_shift_reg = {BUFFER_LENGTH*8{1'b0}};      // Cleare receive buffer
                                     next_encoding_state = ENCODING_STATE_0_IDLE;        // Next state --> Wait for data
                                 end else begin
+                                    // Decrement the data counter to get the next scan code in the next state
                                     next_data_counter   = data_counter - {{(SIZE_DATA_COUNTER-1){1'b0}}, 1'b1};
-                                    next_encoding_state = ENCODING_STATE_4_DATA_OUT;
                                 end
-
-                                // Reset timing counter
-                                next_timing_counter     = {SIZE_TIMING_COUNTER{1'b0}};
-                                // Shift data
-                                next_tmp_data_shift_reg = data_shift_reg >> (data_counter-1-{{(SIZE_DATA_COUNTER-1){1'b0}}, 1'b1})*8;
-                                next_scancode = tmp_data_shift_reg[7:0];
-                            end
+                                next_scancode = DEFAULT_SCANCODE;
+                            end    
                         // Morse code generation for the corresponding scan code
                         8'h1C:    // A
                             begin
@@ -222,8 +227,9 @@ module morse_code_encoder (
                                     next_dah = 1'b1;
                                 else if (timing_counter < BETWEEN_DIT_DAH_TIME + DIT_TIME + DAH_TIME + BETWEEN_CHAR_TIME)
                                     next_dah = 1'b0;
-                                else
-                                    next_scancode = DEFAULT_SCANCODE;
+                                else begin
+                                    next_scancode = COUNT_DOWN;
+                            	end
                             end
                         8'h32:    // B
                             begin
@@ -245,7 +251,7 @@ module morse_code_encoder (
                                 else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 3 * DIT_TIME + BETWEEN_CHAR_TIME)
                                     next_dit = 1'b0;
                                 else
-                                    next_scancode = DEFAULT_SCANCODE;
+                                    next_scancode = COUNT_DOWN;
                             end
                         8'h21:    // C
                             begin
@@ -267,7 +273,7 @@ module morse_code_encoder (
                                 else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + 2 * DIT_TIME + BETWEEN_CHAR_TIME)
                                     next_dit = 1'b0;
                                 else
-                                    next_scancode = DEFAULT_SCANCODE;
+                                    next_scancode = COUNT_DOWN;
                             end
                         8'h23:    // D
                             begin
@@ -285,7 +291,7 @@ module morse_code_encoder (
                                 else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 2 * DIT_TIME + BETWEEN_CHAR_TIME)
                                     next_dit = 1'b0;
                                 else
-                                    next_scancode = DEFAULT_SCANCODE;
+                                    next_scancode = COUNT_DOWN;
                             end
                         8'h24:    // E
                             begin
@@ -295,7 +301,7 @@ module morse_code_encoder (
                                 else if (timing_counter < DAH_TIME + BETWEEN_CHAR_TIME)
                                     next_dit = 1'b0;
                                 else
-                                    next_scancode = DEFAULT_SCANCODE;
+                                    next_scancode = COUNT_DOWN;
                             end
                         8'h2B:    // F
                             begin
@@ -317,7 +323,7 @@ module morse_code_encoder (
                                 else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 3 * DIT_TIME + BETWEEN_CHAR_TIME)
                                     next_dit = 1'b0;
                                 else
-                                    next_scancode = DEFAULT_SCANCODE;
+                                    next_scancode = COUNT_DOWN;
                             end
                         8'h34:    // G
                             begin
@@ -335,7 +341,7 @@ module morse_code_encoder (
                                 else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME + BETWEEN_CHAR_TIME)
                                     next_dit = 1'b0;
                                 else
-                                    next_scancode = DEFAULT_SCANCODE;
+                                    next_scancode = COUNT_DOWN;
                             end
                         8'h33:    // H
                             begin
@@ -357,7 +363,7 @@ module morse_code_encoder (
                                 else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 4 * DIT_TIME + BETWEEN_CHAR_TIME)
                                     next_dit = 1'b0;
                                 else
-                                    next_scancode = DEFAULT_SCANCODE;
+                                    next_scancode = COUNT_DOWN;
                             end
                         8'h43:    // I
                             begin
@@ -371,7 +377,7 @@ module morse_code_encoder (
                                 else if (timing_counter < 1 * BETWEEN_DIT_DAH_TIME + 2 * DIT_TIME + BETWEEN_CHAR_TIME)
                                     next_dit = 1'b0;
                                 else
-                                    next_scancode = DEFAULT_SCANCODE;
+                                    next_scancode = COUNT_DOWN;
                             end
                         8'h3B:    // J
                             begin
@@ -393,7 +399,7 @@ module morse_code_encoder (
                                 else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME + DIT_TIME + BETWEEN_CHAR_TIME)
                                     next_dah = 1'b0;
                                 else
-                                    next_scancode = DEFAULT_SCANCODE;
+                                    next_scancode = COUNT_DOWN;
                             end
                         8'h42:    // K
                             begin
@@ -411,7 +417,7 @@ module morse_code_encoder (
                                 else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME + BETWEEN_CHAR_TIME)
                                     next_dah = 1'b0;
                                 else
-                                    next_scancode = DEFAULT_SCANCODE;
+                                    next_scancode = COUNT_DOWN;
                             end
                         8'h4B:    // L
                             begin
@@ -433,7 +439,7 @@ module morse_code_encoder (
                                 else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 3 * DIT_TIME + BETWEEN_CHAR_TIME)
                                     next_dit = 1'b0;
                                 else
-                                    next_scancode = DEFAULT_SCANCODE;
+                                    next_scancode = COUNT_DOWN;
                             end
                         8'h3A:    // M
                             begin
@@ -447,7 +453,7 @@ module morse_code_encoder (
                                 else if (timing_counter < BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + BETWEEN_CHAR_TIME)
                                     next_dah = 1'b0;
                                 else
-                                    next_scancode = DEFAULT_SCANCODE;
+                                    next_scancode = COUNT_DOWN;
                             end
                         8'h31:    // N
                             begin
@@ -461,7 +467,7 @@ module morse_code_encoder (
                                 else if (timing_counter < BETWEEN_DIT_DAH_TIME + DAH_TIME + DIT_TIME + BETWEEN_CHAR_TIME)
                                     next_dit = 1'b0;
                                 else
-                                    next_scancode = DEFAULT_SCANCODE;
+                                    next_scancode = COUNT_DOWN;
                             end
                         8'h44:    // O
                             begin
@@ -479,7 +485,7 @@ module morse_code_encoder (
                                 else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME + BETWEEN_CHAR_TIME)
                                     next_dah = 1'b0;
                                 else
-                                    next_scancode = DEFAULT_SCANCODE;
+                                    next_scancode = COUNT_DOWN;
                             end
                         8'h4D:    // P
                             begin
@@ -501,7 +507,7 @@ module morse_code_encoder (
                                 else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + 2 * DIT_TIME + BETWEEN_CHAR_TIME)
                                     next_dit = 1'b0;
                                 else
-                                    next_scancode = DEFAULT_SCANCODE;
+                                    next_scancode = COUNT_DOWN;
                             end
                         8'h15:    // Q
                             begin
@@ -523,7 +529,7 @@ module morse_code_encoder (
                                 else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME + DIT_TIME + BETWEEN_CHAR_TIME)
                                     next_dah = 1'b0;
                                 else
-                                    next_scancode = DEFAULT_SCANCODE;
+                                    next_scancode = COUNT_DOWN;
                             end
                         8'h2D:    // R
                             begin
@@ -541,7 +547,7 @@ module morse_code_encoder (
                                 else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 2 * DIT_TIME + BETWEEN_CHAR_TIME)
                                     next_dit = 1'b0;
                                 else
-                                    next_scancode = DEFAULT_SCANCODE;
+                                    next_scancode = COUNT_DOWN;
                             end
                         8'h1B:    // S
                             begin
@@ -559,7 +565,7 @@ module morse_code_encoder (
                                 else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 3 * DIT_TIME + BETWEEN_CHAR_TIME)
                                     next_dit = 1'b0;
                                 else
-                                    next_scancode = DEFAULT_SCANCODE;
+                                    next_scancode = COUNT_DOWN;
                             end
                         8'h2C:    // T
                             begin
@@ -569,7 +575,7 @@ module morse_code_encoder (
                                 else if (timing_counter < DAH_TIME + BETWEEN_CHAR_TIME)
                                     next_dah = 1'b0;
                                 else
-                                    next_scancode = DEFAULT_SCANCODE;
+                                    next_scancode = COUNT_DOWN;
                             end
                         8'h3C:    // U
                             begin
@@ -587,7 +593,7 @@ module morse_code_encoder (
                                 else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 2 * DIT_TIME + BETWEEN_CHAR_TIME)
                                     next_dah = 1'b0;
                                 else
-                                    next_scancode = DEFAULT_SCANCODE;
+                                    next_scancode = COUNT_DOWN;
                             end
                         8'h2A:    // V
                             begin
@@ -609,7 +615,7 @@ module morse_code_encoder (
                                 else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 3 * DIT_TIME + BETWEEN_CHAR_TIME)
                                     next_dah = 1'b0;
                                 else
-                                    next_scancode = DEFAULT_SCANCODE;
+                                    next_scancode = COUNT_DOWN;
                             end
                         8'h1D:    // W
                             begin
@@ -627,7 +633,7 @@ module morse_code_encoder (
                                 else if (timing_counter < 2 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + DIT_TIME + BETWEEN_CHAR_TIME)
                                     next_dah = 1'b0;
                                 else
-                                    next_scancode = DEFAULT_SCANCODE;
+                                    next_scancode = COUNT_DOWN;
                             end
                         8'h22:    // X
                             begin
@@ -649,7 +655,7 @@ module morse_code_encoder (
                                 else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + 2 * DIT_TIME + BETWEEN_CHAR_TIME)
                                     next_dah = 1'b0;
                                 else
-                                    next_scancode = DEFAULT_SCANCODE;
+                                    next_scancode = COUNT_DOWN;
                             end
                         8'h35:    // Y
                             begin
@@ -671,7 +677,7 @@ module morse_code_encoder (
                                 else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME + DIT_TIME + BETWEEN_CHAR_TIME)
                                     next_dah = 1'b0;
                                 else
-                                    next_scancode = DEFAULT_SCANCODE;
+                                    next_scancode = COUNT_DOWN;
                             end
                         8'h1A:    // Z
                             begin
@@ -693,7 +699,7 @@ module morse_code_encoder (
                                 else if (timing_counter < 3 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + 2 * DIT_TIME + BETWEEN_CHAR_TIME)
                                     next_dit = 1'b0;
                                 else
-                                    next_scancode = DEFAULT_SCANCODE;
+                                    next_scancode = COUNT_DOWN;
                             end
                         8'h45:    // 0
                             begin
@@ -719,7 +725,7 @@ module morse_code_encoder (
                                 else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 5 * DAH_TIME + BETWEEN_CHAR_TIME)
                                     next_dah = 1'b0;
                                 else
-                                    next_scancode = DEFAULT_SCANCODE;
+                                    next_scancode = COUNT_DOWN;
                             end
                         8'h16:    // 1
                             begin
@@ -745,7 +751,7 @@ module morse_code_encoder (
                                 else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 4 * DAH_TIME + DIT_TIME + BETWEEN_CHAR_TIME)
                                     next_dah = 1'b0;
                                 else
-                                    next_scancode = DEFAULT_SCANCODE;
+                                    next_scancode = COUNT_DOWN;
                             end
                         8'h1E:    // 2
                             begin
@@ -771,7 +777,7 @@ module morse_code_encoder (
                                 else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME + 2 * DIT_TIME + BETWEEN_CHAR_TIME)
                                     next_dah = 1'b0;
                                 else
-                                    next_scancode = DEFAULT_SCANCODE;
+                                    next_scancode = COUNT_DOWN;
                             end
                         8'h26:    // 3
                             begin
@@ -797,7 +803,7 @@ module morse_code_encoder (
                                 else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + 3 * DIT_TIME + BETWEEN_CHAR_TIME)
                                     next_dah = 1'b0;
                                 else
-                                    next_scancode = DEFAULT_SCANCODE;
+                                    next_scancode = COUNT_DOWN;
                             end
                         8'h25:    // 4
                             begin
@@ -823,7 +829,7 @@ module morse_code_encoder (
                                 else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 4 * DIT_TIME + BETWEEN_CHAR_TIME)
                                     next_dah = 1'b0;
                                 else
-                                    next_scancode = DEFAULT_SCANCODE;
+                                    next_scancode = COUNT_DOWN;
                             end
                         8'h2E:    // 5
                             begin
@@ -849,7 +855,7 @@ module morse_code_encoder (
                                 else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 5 * DIT_TIME + BETWEEN_CHAR_TIME)
                                     next_dit = 1'b0;
                                 else
-                                    next_scancode = DEFAULT_SCANCODE;
+                                    next_scancode = COUNT_DOWN;
                             end
                         8'h36:    // 6
                             begin
@@ -875,7 +881,7 @@ module morse_code_encoder (
                                 else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + DAH_TIME + 4 * DIT_TIME + BETWEEN_CHAR_TIME)
                                     next_dit = 1'b0;
                                 else
-                                    next_scancode = DEFAULT_SCANCODE;
+                                    next_scancode = COUNT_DOWN;
                             end
                         8'h3D:    // 7
                             begin
@@ -901,7 +907,7 @@ module morse_code_encoder (
                                 else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 2 * DAH_TIME + 3 * DIT_TIME + BETWEEN_CHAR_TIME)
                                     next_dit = 1'b0;
                                 else
-                                    next_scancode = DEFAULT_SCANCODE;
+                                    next_scancode = COUNT_DOWN;
                             end
                         8'h3E:    // 8
                             begin
@@ -927,7 +933,7 @@ module morse_code_encoder (
                                 else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 3 * DAH_TIME + 2 * DIT_TIME + BETWEEN_CHAR_TIME)
                                     next_dit = 1'b0;
                                 else
-                                    next_scancode = DEFAULT_SCANCODE;
+                                    next_scancode = COUNT_DOWN;
                             end
                         8'h46:    // 9
                             begin
@@ -953,7 +959,7 @@ module morse_code_encoder (
                                 else if (timing_counter < 4 * BETWEEN_DIT_DAH_TIME + 4 * DAH_TIME + DIT_TIME + BETWEEN_CHAR_TIME)
                                     next_dit = 1'b0;
                                 else
-                                    next_scancode = DEFAULT_SCANCODE;
+                                    next_scancode = COUNT_DOWN;
                             end
                         SPACE:    // SPACE
                             begin
@@ -962,7 +968,7 @@ module morse_code_encoder (
                                     next_dit = 1'b0;
                                     next_dah = 1'b0;
                                 end else
-                                    next_scancode = DEFAULT_SCANCODE;
+                                    next_scancode = COUNT_DOWN;
                             end
                         default:
                             begin
