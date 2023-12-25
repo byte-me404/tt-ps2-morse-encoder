@@ -35,18 +35,19 @@ module ps2_data_input (
 
     // Register process
     always @(posedge clk) begin
-        if (rst)
+        if (rst) begin
             receiver_state     <= PS2_STATE_0_IDLE;
             data_count         <= 4'h0;
             data_shift_reg     <= 8'h00;
             received_data      <= 8'h00;
             received_data_strb <= 1'b0;
-        else
+        end else begin
             receiver_state     <= next_receiver_state;
             data_counter       <= next_data_count;
             data_shift_reg     <= next_data_shift_reg;
             received_data      <= next_received_data;
             received_data_strb <= next_received_data_strb;
+        end
     end
 
     // Sequential logic

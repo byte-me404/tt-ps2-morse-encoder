@@ -30,16 +30,17 @@ module ps2_controller (
 
     // Register process
     always @(posedge clk) begin
-        if (rst)
+        if (rst) begin
             ps2_state <= PS2_STATE_0_IDLE;
             last_ps2_clk <= 1'b1;
             ps2_clk_reg  <= 1'b1;
             ps2_data_reg <= 1'b1;
-        else
+        end else begin
             ps2_state <= next_ps2_state;
             last_ps2_clk <= ps2_clk_reg;
             ps2_clk_reg  <= ps2_clk;
             ps2_data_reg <= ps2_data;
+        end
     end
 
     // Sequential logic
