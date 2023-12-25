@@ -44,44 +44,52 @@ documentation:
 
 # Instructions on how someone could test your project, include things like what buttons do what and how to set the clock if needed
   how_to_test:  |
-      After reset, the counter should increase by one every second with a 10MHz input clock.
-      Experiment by changing the inputs to change the counting speed.
+      To test the design, connect a PS/2 keyboard. Connect the data line to 'ui_in[0]' and the clock line to 'ui_in[0]'.
+      Don't forget to supply the keyboard with 5V and GND. After everything is connected perform a reset and start typing on the keyboard,
+      the input is stored in a buffer (max. 10 characters). With F1 and F4 you can switch between two modes.
+      Mode 1 (F1) is the default mode. In this mode, the characters stored in the buffer are output when Enter is pressed on the keyboard.
+      No new characters can be entered during output. Mode 2 (F4) outputs the buffer as soon as the Space bar is pressed.
+      Segment A of the seven-segment display lights up when a Dit is output, segment D lights up when a Dah is output.
+      Segment G lights up when a Dit or a Dah is output. A buzzer can be connected to output 'uo_out[7]' (segment DP) which emits the morse code as a tone (600 Hz).
+
+      If you don't have a PS/2 keyboard, you can also use a USB keyboard. Many but not all USB keyboards still support the PS/2 protocol.
+      In this case D+ is clock and D- is data.
 
 # A description of what the inputs do (e.g. red button, SPI CLK, SPI MOSI, etc).
   inputs:               
-    - compare bit 11
-    - compare bit 12
-    - compare bit 13
-    - compare bit 14
-    - compare bit 15
-    - compare bit 16
-    - compare bit 17
-    - compare bit 18
+    - PS/2 Clock
+    - PS/2 Data
+    - none
+    - none
+    - none
+    - none
+    - none
+    - none
 # A description of what the outputs do (e.g. status LED, SPI MISO, etc)
   outputs:
-    - segment a
-    - segment b
-    - segment c
-    - segment d
-    - segment e
-    - segment f
-    - segment g
-    - dot
+    - Dit Output
+    - none
+    - none
+    - Dah Output
+    - none
+    - none
+    - Morse Code Output
+    - Morse Code Output (Square Wave for Buzzer)
 # A description of what the bidirectional I/O pins do (e.g. I2C SDA, I2C SCL, etc)
   bidirectional:
-    - second counter bit 0
-    - second counter bit 1
-    - second counter bit 2
-    - second counter bit 3
-    - second counter bit 4
-    - second counter bit 5
-    - second counter bit 6
-    - second counter bit 7
+    - none
+    - none
+    - none
+    - none
+    - none
+    - none
+    - none
+    - none
 
 # The following fields are optional
-  tag:          "ps/2, morse code, keyboard"      # comma separated list of tags: test, encryption, experiment, clock, animation, utility, industrial, pwm, fpga, alu, microprocessor, risc, riscv, sensor, signal generator, fft, filter, music, bcd, sound, serial, timer, random number generator, calculator, decoder, counter, puzzle, multiplier, game, oscillator,
-  external_hw:  "PS/2 Keyboard"      # Describe any external hardware needed
-  discord:      ""      # Your discord handle, used for communication and automatically assigning tapeout role after a submission
-  doc_link:     ""      # URL to longer form documentation, eg the README.md in your repository
-  clock_hz:     10000000       # Clock frequency in Hz (if required)
-  picture:      ""      # relative path to a picture in your repository (must be 512kb or less)
+  tag:          "ps/2, morse code, keyboard"  # comma separated list of tags: test, encryption, experiment, clock, animation, utility, industrial, pwm, fpga, alu, microprocessor, risc, riscv, sensor, signal generator, fft, filter, music, bcd, sound, serial, timer, random number generator, calculator, decoder, counter, puzzle, multiplier, game, oscillator,
+  external_hw:  "PS/2 Keyboard"               # Describe any external hardware needed
+  discord:      "db.baum"                     # Your discord handle, used for communication and automatically assigning tapeout role after a submission
+  doc_link:     "https://github.com/byte-me404/tt-ps2-morse-encoder/blob/main/README.md"      # URL to longer form documentation, eg the README.md in your repository
+  clock_hz:     500000000                     # Clock frequency in Hz (if required)
+  picture:      ""                            # relative path to a picture in your repository (must be 512kb or less)
