@@ -23,6 +23,7 @@
 `timescale 1ns / 1ns
 
 // Include other modules
+`include "tt_um_ps2_morse_encoder_top.v"
 `include "ps2_controller.v"
 `include "morse_code_encoder.v"
 `include "tone_generator.v"
@@ -30,57 +31,52 @@
 module tb_custom_tests;
 
     // Internal registers
-    reg         clk = 1'b0;
-    reg         rst = 1'b1;
     reg 		ps2_clk_tmp  = 1'b0;
     reg			ps2_data_tmp = 1'b1;    
 
     // Internal wires
-    wire        ps2_clk;
-    wire        ps2_data;
-    wire [7:0] ps2_received_data;
-    wire       ps2_received_data_strb;
+    wire       ps2_clk;
+    wire       ps2_data;
     wire	   dit_out;
     wire       dah_out;
     wire       morse_code_out;
     wire       morse_tone_out;
 
-    // Connect modules
-    ps2_controller ps2_controller_DUT (
+
+    // Internal registers
+    reg  clk   = 1'b0;
+    reg  rst_n = 1'b1;
+    reg  ena   = 1'b1;
+    reg  [7:0] ui_in;
+    reg  [7:0] uio_in;
+
+    // Internal wires
+    wire [7:0] uo_out;
+    wire [7:0] uio_out;
+    wire [7:0] uio_oe;
+
+    // DUT
+    tt_um_ps2_morse_encoder_top tt_um_ps2_morse_encoder_top_DUT (
         // Inputs
+        .ena(ena),
         .clk(clk),
-        .rst(rst),
-        .ps2_clk(ps2_clk),
-        .ps2_data(ps2_data),
+        .rst_n(rst_n),
+        .ui_in(ui_in),
+        .uio_in(uio_in),
 
         // Outputs
-        .ps2_received_data(ps2_received_data),
-        .ps2_received_data_strb(ps2_received_data_strb)
+        .uo_out(uo_out),
+        .uio_oe(uio_oe),
+        .uio_out(uio_out),
     );
 
-    morse_code_encoder morse_code_encoder_DUT (
-        // Inputs
-        .clk(clk),
-        .rst(rst),
-        .ps2_received_data(ps2_received_data),
-        .ps2_received_data_strb(ps2_received_data_strb),
+    assign morse_code_out = dit_out[0];
+    assign morse_tone_out = dah_out[3];
+    assign morse_code_out = uo_out[6];
+    assign morse_tone_out = uo_out[7];
+    assign ui_in[0] = ps2_clk;
+    assign ui_in[0] = ps2_data;
 
-        // Outputs
-        .dit_out(dit_out),
-        .dah_out(dah_out),
-        .morse_code_out(morse_code_out)
-    );
-
-    tone_generator tone_generator_DUT (
-        // Inputs
-        .clk(clk),
-        .rst(rst),
-        .dit(dit_out),
-        .dah(dah_out),
-
-        // Outputs
-        .tone_out(morse_tone_out)
-    );
 
     /* verilator lint_off STMTDLY */
     always #10 clk = ~clk;                      // System-Clock 50 MHz
@@ -88,8 +84,8 @@ module tb_custom_tests;
     /* verilator lint_on STMTDLY */
 
     // Assign PS/2 clock and data
-    assign ps2_controller_DUT.ps2_clk = ps2_clk_tmp;
-    assign ps2_controller_DUT.ps2_data = ps2_data_tmp;
+    //assign ps2_controller_DUT.ps2_clk = ps2_clk_tmp;
+    //assign ps2_controller_DUT.ps2_data = ps2_data_tmp;
 
     initial begin
         $dumpfile("tb_ps2_controller.vcd");

@@ -24,14 +24,17 @@
 `default_nettype none
 
 module tt_um_ps2_morse_encoder_top (
-    input  wire [7:0] ui_in,    // Dedicated inputs  - connected to the input switches
-    output wire [7:0] uo_out,   // Dedicated outputs - connected to the 7 segment display
-    input  wire [7:0] uio_in,   // IOs: Bidirectional input path
-    output wire [7:0] uio_out,  // IOs: Bidirectional output path
-    output wire [7:0] uio_oe,   // IOs: Bidirectional enable path (active high: 0=input, 1=output)
-    input  wire       ena,      // Enavle, will go high when the design is enabled
+    // Inputs
+    input  wire       ena,      // Enable, will go high when the design is enabled
     input  wire       clk,      // Clock
     input  wire       rst_n     // Reset - low to reset
+    input  wire [7:0] ui_in,    // Connected to the input switches
+    input  wire [7:0] uio_in,   // IOs: Bidirectional input path
+    
+    // Outputs
+    output wire [7:0] uo_out,   // Connected to the 7 segment display
+    output wire [7:0] uio_oe,   // IOs: Bidirectional enable path (active high: 0=input, 1=output)
+    output wire [7:0] uio_out,  // IOs: Bidirectional output path
 );
 
     // Internal wires
