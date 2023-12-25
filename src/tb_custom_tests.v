@@ -1,7 +1,7 @@
 `timescale 1ns / 1ns
 
 `include "ps2_data_input.v"
-`include "ps2_controller.v"
+//`include "ps2_controller.v"
 `include "morse_code_encoder.v"
 `include "tone_generator.v"
 
@@ -26,7 +26,23 @@ module tb_custom_tests;
     
     
     // DUT
+    /*
     ps2_controller ps2_controller_DUT (
+        // Inputs
+        .clk(clk),
+        .rst(rst),
+        
+        // Bidirectionals
+        .ps2_clk(ps2_clk),
+        .ps2_data(ps2_data),
+        
+        // Outputs
+        .ps2_received_data(ps2_received_data),
+        .ps2_received_data_strb(ps2_received_data_strb)
+    );*/
+
+    // DUT
+    ps2_data_input ps2_data_input_DUT (
         // Inputs
         .clk(clk),
         .rst(rst),

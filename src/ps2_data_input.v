@@ -5,14 +5,16 @@ module ps2_data_input (
     // Inputs
     input        clk,
     input        rst,
-    input        start_receiving_data,
-    input        ps2_clk_posedge,
+    input        ps2_clk,
     input        ps2_data,
 
     // Outputs
     output [7:0] ps2_received_data,
     output       ps2_received_data_strb
 );
+
+    // Internal wires
+    wire ps2_clk_posedge;
 
     // Internal registers
     reg [3:0] data_count;
@@ -25,6 +27,9 @@ module ps2_data_input (
     reg [2:0] next_receiver_state;
     reg       received_data_strb;
     reg       next_received_data_strb;
+
+    reg  ps2_clk_reg;
+    reg  last_ps2_clk;
 
     // FSM-States
     localparam PS2_STATE_0_IDLE      = 3'h0,
@@ -40,12 +45,15 @@ module ps2_data_input (
             data_shift_reg     <= 8'h00;
             received_data      <= 8'h00;
             received_data_strb <= 1'b0;
+            ps2_clk_reg  <= 1'b1;
         end else begin
             receiver_state     <= next_receiver_state;
             data_count         <= next_data_count;
             data_shift_reg     <= next_data_shift_reg;
             received_data      <= next_received_data;
             received_data_strb <= next_received_data_strb;
+            last_ps2_clk <= ps2_clk_reg;
+            ps2_clk_reg  <= ps2_clk;
         end
     end
 
@@ -62,7 +70,7 @@ module ps2_data_input (
         case (receiver_state)
             PS2_STATE_0_IDLE:
                 begin
-                    if (start_receiving_data && !received_data_strb)
+                    if (!ps2_data && ps2_clk_posedge && !received_data_strb)
                         next_receiver_state = PS2_STATE_1_DATA_IN;
                     else
                         next_receiver_state = PS2_STATE_0_IDLE;
@@ -108,5 +116,6 @@ module ps2_data_input (
     // Combinatoric logic
     assign ps2_received_data      = received_data;
     assign ps2_received_data_strb = received_data_strb;
+    assign ps2_clk_posedge      = (ps2_clk_reg && !last_ps2_clk) ? 1'b1 : 1'b0;
     
 endmodule
