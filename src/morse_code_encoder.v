@@ -42,7 +42,7 @@ module morse_code_encoder (
 );
 
     // Constant parameters
-    localparam BUFFER_LENGTH       = 15;    // Input buffer
+    localparam BUFFER_LENGTH       = 16;    // Input buffer
     localparam SIZE_DATA_COUNTER   = 4;     // 4-Bit counter
     localparam SIZE_TIMING_COUNTER = 25;    // 25-Bit counter
 

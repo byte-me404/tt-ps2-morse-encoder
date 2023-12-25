@@ -31,7 +31,7 @@
 module tb_custom_tests ();
 
     // Registers and wires for testing
-    reg  ps2_clk = 1'b0;
+    reg  ps2_clk  = 1'b0;
     reg  ps2_data = 1'b1;
     wire dit_out;
     wire dah_out;
