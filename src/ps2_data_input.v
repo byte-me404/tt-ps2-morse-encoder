@@ -21,10 +21,10 @@ module ps2_data_input (
     reg [7:0] next_data_shift_reg;
     reg [7:0] received_data;
     reg [7:0] next_received_data;
-    reg [7:0] received_data_strb;
-    reg [7:0] next_received_data_strb;
     reg [2:0] receiver_state;
     reg [2:0] next_receiver_state;
+    reg       received_data_strb;
+    reg       next_received_data_strb;
 
     // FSM-States
     localparam PS2_STATE_0_IDLE      = 3'h0,
