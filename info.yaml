@@ -30,17 +30,17 @@ documentation:
 
 # Longer description of how the project works. You can use standard markdown format.
   how_it_works: |
-      Uses a set of registers to divide the clock, and then some combinational logic
-      to convert from binary to decimal for the display.
+      The PS/2 protocol is a communication standard used for connecting keyboards to computers.
+      It utilizes a synchronous serial communication method, with two lines for clock and data.
+      The keyboard sends data to the computer by modulating the voltage on the data line in response to clock pulses.
+      For further information take a look at [PS/2 Wikipedia](https://en.wikipedia.org/wiki/PS/2_port).
 
-      Puts the bottom 8 bits of the counter on the bidirectional outputs.
-
-      With all the inputs set to 0, the internal 24 bit compare is set to 10,000,000. This means the
-      counter will increment by one each second.
-
-      If any inputs are non zero, then the input will be used as an bits 11 to 18 of the 24 bit compare register.
-      Example: setting the inputs to 00010000 will program 16384 into the compare register.
-      With a 10MHz clock the counter will increment ~610 times per second.
+      This design includes a module that evaluates the data sent by the keyboard.
+      A finite state machine (FSM) in combination with a shift register is used internally for this purpose.
+      As soon as data is available, a strobe is generated; this strobe signals to another module that data is ready to be read.
+      This further module stores the data in a buffer. As soon as enter or space bar is pressed,
+      the contents of the buffer are output as morse code. Only the morse codes for the A-Z and 0-9 keys are supported.
+      The exact implementation can be found on [GitHub](https://github.com/byte-me404/tt-ps2-morse-encoder).
 
 # Instructions on how someone could test your project, include things like what buttons do what and how to set the clock if needed
   how_to_test:  |
@@ -74,7 +74,7 @@ documentation:
     - none
     - none
     - Morse Code Output
-    - Morse Code Output (Square Wave for Buzzer)
+    - Morse Code Output (Buzzer)
 # A description of what the bidirectional I/O pins do (e.g. I2C SDA, I2C SCL, etc)
   bidirectional:
     - none
@@ -90,6 +90,6 @@ documentation:
   tag:          "ps/2, morse code, keyboard"  # comma separated list of tags: test, encryption, experiment, clock, animation, utility, industrial, pwm, fpga, alu, microprocessor, risc, riscv, sensor, signal generator, fft, filter, music, bcd, sound, serial, timer, random number generator, calculator, decoder, counter, puzzle, multiplier, game, oscillator,
   external_hw:  "PS/2 Keyboard"               # Describe any external hardware needed
   discord:      "db.baum"                     # Your discord handle, used for communication and automatically assigning tapeout role after a submission
-  doc_link:     "https://github.com/byte-me404/tt-ps2-morse-encoder/blob/main/README.md"      # URL to longer form documentation, eg the README.md in your repository
+  doc_link:     "https://github.com/byte-me404/tt-ps2-morse-encoder/blob/main/README.md" # URL to longer form documentation, eg the README.md in your repository
   clock_hz:     500000000                     # Clock frequency in Hz (if required)
   picture:      ""                            # relative path to a picture in your repository (must be 512kb or less)
