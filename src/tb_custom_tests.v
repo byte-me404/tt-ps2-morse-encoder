@@ -28,29 +28,22 @@
 `include "morse_code_encoder.v"
 `include "tone_generator.v"
 
-module tb_custom_tests;
+module tb_custom_tests ();
 
-    // Internal registers
-    reg 		ps2_clk_tmp  = 1'b0;
-    reg			ps2_data_tmp = 1'b1;    
-
-    // Internal wires
-    wire       ps2_clk;
-    wire       ps2_data;
+    // Registers and wires for testing
+    reg 		ps2_clk = 1'b0;
+    reg			ps2_data = 1'b1;
     wire	   dit_out;
     wire       dah_out;
     wire       morse_code_out;
     wire       morse_tone_out;
 
-
-    // Internal registers
-    reg  clk   = 1'b0;
-    reg  rst_n = 1'b1;
+    // Registers and wires for DUT
     reg  ena   = 1'b1;
-    reg  [7:0] ui_in;
-    reg  [7:0] uio_in;
-
-    // Internal wires
+    reg  clk   = 1'b0;
+    reg  rst_n = 1'b0;
+    wire [7:0] ui_in;
+    wire [7:0] uio_in;
     wire [7:0] uo_out;
     wire [7:0] uio_out;
     wire [7:0] uio_oe;
@@ -67,358 +60,354 @@ module tb_custom_tests;
         // Outputs
         .uo_out(uo_out),
         .uio_oe(uio_oe),
-        .uio_out(uio_out),
+        .uio_out(uio_out)
     );
 
-    assign morse_code_out = dit_out[0];
-    assign morse_tone_out = dah_out[3];
+    // Assign values
+    assign dit_out = uo_out[0];
+    assign dah_out = uo_out[3];
     assign morse_code_out = uo_out[6];
     assign morse_tone_out = uo_out[7];
     assign ui_in[0] = ps2_clk;
-    assign ui_in[0] = ps2_data;
-
+    assign ui_in[1] = ps2_data;
 
     /* verilator lint_off STMTDLY */
-    always #10 clk = ~clk;                      // System-Clock 50 MHz
-    always #40000 ps2_clk_tmp = ~ps2_clk_tmp;   // Simulated PS/2 clock 12kHz
+    always #10 clk = ~clk;              // System-Clock 50 MHz
+    always #40000 ps2_clk = ~ps2_clk;   // Simulated PS/2 clock 12kHz
     /* verilator lint_on STMTDLY */
-
-    // Assign PS/2 clock and data
-    //assign ps2_controller_DUT.ps2_clk = ps2_clk_tmp;
-    //assign ps2_controller_DUT.ps2_data = ps2_data_tmp;
 
     initial begin
         $dumpfile("tb_ps2_controller.vcd");
         $dumpvars;
 
         /* verilator lint_off STMTDLY */
-        #50 rst = 1'b0;
+        #50 rst_n = 1'b1;
 
         // Simulate PS/2 data
         // h1C (A) from Device to Host
-        #619900 ps2_data_tmp  = 1'b0;   // Start-Bit
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;    // Parity-Bit
-        #80000  ps2_data_tmp  = 1'b1;
+        #619900 ps2_data = 1'b0;   // Start-Bit
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;    // Parity-Bit
+        #80000  ps2_data = 1'b1;
 
         // h29 (Space) from Device to Host
-        #640000 ps2_data_tmp  = 1'b0;   // Start-Bit
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;    // Parity-Bit
-        #80000  ps2_data_tmp  = 1'b1;
+        #640000 ps2_data = 1'b0;   // Start-Bit
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;    // Parity-Bit
+        #80000  ps2_data = 1'b1;
 
         // h32 (B) from Device to Host
-        #640000 ps2_data_tmp  = 1'b0;   // Start-Bit
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;    // Parity-Bit
-        #80000  ps2_data_tmp  = 1'b1;
+        #640000 ps2_data = 1'b0;   // Start-Bit
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;    // Parity-Bit
+        #80000  ps2_data = 1'b1;
 
         // h1C (A) from Device to Host
-        #640000 ps2_data_tmp  = 1'b0;   // Start-Bit
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;    // Parity-Bit
-        #80000  ps2_data_tmp  = 1'b1;
+        #640000 ps2_data = 1'b0;   // Start-Bit
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;    // Parity-Bit
+        #80000  ps2_data = 1'b1;
 
         // hF0 (Break-Code) from Device to Host
-        #640000 ps2_data_tmp  = 1'b0;   // Start-Bit
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b1;    // Parity-Bit
-        #80000  ps2_data_tmp  = 1'b1;
+        #640000 ps2_data = 1'b0;   // Start-Bit
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b1;    // Parity-Bit
+        #80000  ps2_data = 1'b1;
 
         // h21 (C) from Device to Host
-        #640000 ps2_data_tmp  = 1'b0;   // Start-Bit
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;    // Parity-Bit
-        #80000  ps2_data_tmp  = 1'b1;
+        #640000 ps2_data = 1'b0;   // Start-Bit
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;    // Parity-Bit
+        #80000  ps2_data = 1'b1;
 
         // h1C (A) from Device to Host
-        #640000 ps2_data_tmp  = 1'b0;   // Start-Bit
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;    // Parity-Bit
-        #80000  ps2_data_tmp  = 1'b1;
+        #640000 ps2_data = 1'b0;   // Start-Bit
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;    // Parity-Bit
+        #80000  ps2_data = 1'b1;
 
         // h29 (Space) from Device to Host
-        #640000 ps2_data_tmp  = 1'b0;   // Start-Bit
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;    // Parity-Bit
-        #80000  ps2_data_tmp  = 1'b1;
+        #640000 ps2_data = 1'b0;   // Start-Bit
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;    // Parity-Bit
+        #80000  ps2_data = 1'b1;
 
         // h32 (B) from Device to Host
-        #640000 ps2_data_tmp  = 1'b0;   // Start-Bit
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;    // Parity-Bit
-        #80000  ps2_data_tmp  = 1'b1;
+        #640000 ps2_data = 1'b0;   // Start-Bit
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;    // Parity-Bit
+        #80000  ps2_data = 1'b1;
 
         // h1C (A) from Device to Host
-        #640000 ps2_data_tmp  = 1'b0;   // Start-Bit
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;    // Parity-Bit
-        #80000  ps2_data_tmp  = 1'b1;
+        #640000 ps2_data = 1'b0;   // Start-Bit
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;    // Parity-Bit
+        #80000  ps2_data = 1'b1;
 
         // h1C (A) from Device to Host
-        #640000 ps2_data_tmp  = 1'b0;   // Start-Bit
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;    // Parity-Bit
-        #80000  ps2_data_tmp  = 1'b1;
+        #640000 ps2_data = 1'b0;   // Start-Bit
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;    // Parity-Bit
+        #80000  ps2_data = 1'b1;
 
         // h29 (Space) from Device to Host
-        #640000 ps2_data_tmp  = 1'b0;   // Start-Bit
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;    // Parity-Bit
-        #80000  ps2_data_tmp  = 1'b1;
+        #640000 ps2_data = 1'b0;   // Start-Bit
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;    // Parity-Bit
+        #80000  ps2_data = 1'b1;
 
         // h32 (B) from Device to Host
-        #640000 ps2_data_tmp  = 1'b0;   // Start-Bit
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;    // Parity-Bit
-        #80000  ps2_data_tmp  = 1'b1;
+        #640000 ps2_data = 1'b0;   // Start-Bit
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;    // Parity-Bit
+        #80000  ps2_data = 1'b1;
 
         // h1C (A) from Device to Host
-        #640000 ps2_data_tmp  = 1'b0;   // Start-Bit
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;    // Parity-Bit
-        #80000  ps2_data_tmp  = 1'b1;
+        #640000 ps2_data = 1'b0;   // Start-Bit
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;    // Parity-Bit
+        #80000  ps2_data = 1'b1;
 
         // h21 (C) from Device to Host
-        #640000 ps2_data_tmp  = 1'b0;   // Start-Bit
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;    // Parity-Bit
-        #80000  ps2_data_tmp  = 1'b1;
+        #640000 ps2_data = 1'b0;   // Start-Bit
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;    // Parity-Bit
+        #80000  ps2_data = 1'b1;
 
         // h1C (A) from Device to Host
-        #640000 ps2_data_tmp  = 1'b0;   // Start-Bit
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;    // Parity-Bit
-        #80000  ps2_data_tmp  = 1'b1;
+        #640000 ps2_data = 1'b0;   // Start-Bit
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;    // Parity-Bit
+        #80000  ps2_data = 1'b1;
 
         // h29 (Space) from Device to Host
-        #640000 ps2_data_tmp  = 1'b0;   // Start-Bit
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;    // Parity-Bit
-        #80000  ps2_data_tmp  = 1'b1;
+        #640000 ps2_data = 1'b0;   // Start-Bit
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;    // Parity-Bit
+        #80000  ps2_data = 1'b1;
 
         // h32 (B) from Device to Host
-        #640000 ps2_data_tmp  = 1'b0;   // Start-Bit
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;    // Parity-Bit
-        #80000  ps2_data_tmp  = 1'b1;
+        #640000 ps2_data = 1'b0;   // Start-Bit
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;    // Parity-Bit
+        #80000  ps2_data = 1'b1;
 
         // h1C (A) from Device to Host
-        #640000 ps2_data_tmp  = 1'b0;   // Start-Bit
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;    // Parity-Bit
-        #80000  ps2_data_tmp  = 1'b1;
+        #640000 ps2_data = 1'b0;   // Start-Bit
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;    // Parity-Bit
+        #80000  ps2_data = 1'b1;
 
         // h5A (Enter) from Device to Host
-        #640000 ps2_data_tmp  = 1'b0;   // Start-Bit
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;    // Parity-Bit
-        #80000  ps2_data_tmp  = 1'b1;
+        #640000 ps2_data = 1'b0;   // Start-Bit
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;    // Parity-Bit
+        #80000  ps2_data = 1'b1;
 
         // h1C (A) from Device to Host
-        #60000000 ps2_data_tmp  = 1'b0;   // Start-Bit
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;    // Parity-Bit
-        #80000  ps2_data_tmp  = 1'b1;
+        #120000000 ps2_data = 1'b0;   // Start-Bit
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;    // Parity-Bit
+        #80000  ps2_data = 1'b1;
 
         // h32 (B) from Device to Host
-        #640000 ps2_data_tmp  = 1'b0;   // Start-Bit
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;    // Parity-Bit
-        #80000  ps2_data_tmp  = 1'b1;
+        #640000 ps2_data = 1'b0;   // Start-Bit
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;    // Parity-Bit
+        #80000  ps2_data = 1'b1;
 
         // h21 (C) from Device to Host
-        #640000 ps2_data_tmp  = 1'b0;   // Start-Bit
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;    // Parity-Bit
-        #80000  ps2_data_tmp  = 1'b1;
+        #640000 ps2_data = 1'b0;   // Start-Bit
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;    // Parity-Bit
+        #80000  ps2_data = 1'b1;
 
         // h0C (F4) from Device to Host
-        #640000 ps2_data_tmp  = 1'b0;   // Start-Bit
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;    // Parity-Bit
-        #80000  ps2_data_tmp  = 1'b1;
+        #640000 ps2_data = 1'b0;   // Start-Bit
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;    // Parity-Bit
+        #80000  ps2_data = 1'b1;
 
         // h29 (Space) from Device to Host
-        #640000 ps2_data_tmp  = 1'b0;   // Start-Bit
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b1;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;
-        #80000  ps2_data_tmp  = 1'b0;    // Parity-Bit
-        #80000  ps2_data_tmp  = 1'b1;
+        #640000 ps2_data = 1'b0;   // Start-Bit
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b1;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;
+        #80000  ps2_data = 1'b0;    // Parity-Bit
+        #80000  ps2_data = 1'b1;
 
         #40000000 $finish;
         /* verilator lint_on STMTDLY */
