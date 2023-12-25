@@ -39,7 +39,7 @@ module tt_um_ps2_morse_encoder_top (
 
     // Internal wires
     wire       reset =! rst_n;  // Inverted reset - high to reset
-	wire [7:0] ps2_received_data;
+    wire [7:0] ps2_received_data;
     wire       ps2_received_data_strb;
 
     // Combinatoric logic

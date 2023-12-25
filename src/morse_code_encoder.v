@@ -42,16 +42,16 @@ module morse_code_encoder (
 );
 
     // Constant parameters
-    localparam BUFFER_LENGTH       = 14;    // Input buffer
+    localparam BUFFER_LENGTH       = 15;    // Input buffer
     localparam SIZE_DATA_COUNTER   = 4;     // 4-Bit counter
     localparam SIZE_TIMING_COUNTER = 25;    // 25-Bit counter
 
     // Counter values for tone generation, about 15 WPM (Word per Minute)
-    localparam [SIZE_TIMING_COUNTER-1:0] DIT_TIME             = 4000000;    // Testing:	40000
-    localparam [SIZE_TIMING_COUNTER-1:0] DAH_TIME             = 12000000;   // Testing:	120000
-    localparam [SIZE_TIMING_COUNTER-1:0] BETWEEN_DIT_DAH_TIME = 4000000; 	// Testing:	40000
-    localparam [SIZE_TIMING_COUNTER-1:0] BETWEEN_CHAR_TIME    = 12000000;   // Testing:	120000
-    localparam [SIZE_TIMING_COUNTER-1:0] SPACE_TIME           = 28000000;   // Testing:	280000
+    localparam [SIZE_TIMING_COUNTER-1:0] DIT_TIME             = 4000000;    // Testing: 40000
+    localparam [SIZE_TIMING_COUNTER-1:0] DAH_TIME             = 12000000;   // Testing: 120000
+    localparam [SIZE_TIMING_COUNTER-1:0] BETWEEN_DIT_DAH_TIME = 4000000;    // Testing: 40000
+    localparam [SIZE_TIMING_COUNTER-1:0] BETWEEN_CHAR_TIME    = 12000000;   // Testing: 120000
+    localparam [SIZE_TIMING_COUNTER-1:0] SPACE_TIME           = 28000000;   // Testing: 280000
     
     // Scancodes for diffrent keys
     localparam BREAK_CODE = 8'hf0;
