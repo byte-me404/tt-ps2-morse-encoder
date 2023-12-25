@@ -1,7 +1,6 @@
 `timescale 1ns / 1ns
 
-`include "ps2_data_input.v"
-//`include "ps2_controller.v"
+`include "ps2_controller.v"
 `include "morse_code_encoder.v"
 `include "tone_generator.v"
 
@@ -24,25 +23,9 @@ module tb_custom_tests;
     wire       morse_code_out;
     wire       morse_tone_out;
     
-    
-    // DUT
-    /*
-    ps2_controller ps2_controller_DUT (
-        // Inputs
-        .clk(clk),
-        .rst(rst),
-        
-        // Bidirectionals
-        .ps2_clk(ps2_clk),
-        .ps2_data(ps2_data),
-        
-        // Outputs
-        .ps2_received_data(ps2_received_data),
-        .ps2_received_data_strb(ps2_received_data_strb)
-    );*/
 
     // DUT
-    ps2_data_input ps2_data_input_DUT (
+    ps2_controller ps2_controller_DUT (
         // Inputs
         .clk(clk),
         .rst(rst),
@@ -85,8 +68,8 @@ module tb_custom_tests;
     always #40000 ps2_clk_tmp = ~ps2_clk_tmp;   // Simulated PS/2 Clock 12kHz
     /* verilator lint_on STMTDLY */
     
-    assign ps2_data_input_DUT.ps2_clk = ps2_clk_tmp;
-    assign ps2_data_input_DUT.ps2_data = ps2_data_tmp;
+    assign ps2_controller_DUT.ps2_clk = ps2_clk_tmp;
+    assign ps2_controller_DUT.ps2_data = ps2_data_tmp;
     
     initial begin
         $dumpfile("tb_ps2_controller.vcd");
