@@ -14,7 +14,7 @@ module tb_custom_tests;
     wire        ps2_clk;
     wire        ps2_data;
     reg 		ps2_clk_tmp  = 1'b0;
-    reg			ps2_data_tmp = 1'b0;
+    reg			ps2_data_tmp = 1'b1;
     
     wire [7:0] ps2_received_data;
     wire       ps2_received_data_strb;
@@ -131,7 +131,7 @@ module tb_custom_tests;
         #80000  ps2_data_tmp  = 1'b0;    // Parity-Bit
         #80000  ps2_data_tmp  = 1'b1;
         
-        // h21 (Break-Code) from Device to Host
+        // hF0 (Break-Code) from Device to Host
         #640000 ps2_data_tmp  = 1'b0;   // Start-Bit
         #80000  ps2_data_tmp  = 1'b0;
         #80000  ps2_data_tmp  = 1'b0;
@@ -381,7 +381,7 @@ module tb_custom_tests;
         #80000  ps2_data_tmp  = 1'b1;    // Parity-Bit
         #80000  ps2_data_tmp  = 1'b1;
         
-        // h21 (F4) from Device to Host
+        // h0C (F4) from Device to Host
         #640000 ps2_data_tmp  = 1'b0;   // Start-Bit
         #80000  ps2_data_tmp  = 1'b0;
         #80000  ps2_data_tmp  = 1'b0;

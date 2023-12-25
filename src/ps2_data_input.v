@@ -56,7 +56,7 @@ module ps2_data_input (
         next_data_count         = data_count;
         next_data_shift_reg     = data_shift_reg;
         next_received_data      = received_data;
-        next_received_data_strb = received_data_strb;
+        next_received_data_strb = 1'b0;
 
         // FSM
         case (receiver_state)
@@ -73,9 +73,11 @@ module ps2_data_input (
                         if (data_count == 4'h7) begin
                             next_data_count = 4'h0;
                             next_receiver_state = PS2_STATE_2_PARITY_IN;
-                        end else
+                        end else begin
                             next_data_count = data_count + 4'h1;
-                            next_data_shift_reg = {ps2_data, data_shift_reg[7:1]};
+                            next_receiver_state = PS2_STATE_1_DATA_IN;
+                        end
+                        next_data_shift_reg = {ps2_data, data_shift_reg[7:1]};
                     end else
                         next_receiver_state = PS2_STATE_1_DATA_IN;
                 end
@@ -89,11 +91,10 @@ module ps2_data_input (
             PS2_STATE_3_STOP_IN:
                 begin
                     if (ps2_clk_posedge) begin
-                        next_receiver_state = PS2_STATE_0_IDLE;
                         next_received_data_strb = 1'b1;
+                        next_receiver_state = PS2_STATE_0_IDLE;
                     end else begin
                         next_receiver_state = PS2_STATE_3_STOP_IN;
-                        next_received_data_strb = 1'b0;
                     end
                     next_received_data = data_shift_reg;
                 end
