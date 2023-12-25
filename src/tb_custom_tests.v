@@ -85,8 +85,8 @@ module tb_custom_tests;
     always #40000 ps2_clk_tmp = ~ps2_clk_tmp;   // Simulated PS/2 Clock 12kHz
     /* verilator lint_on STMTDLY */
     
-    assign ps2_controller_DUT.ps2_clk = ps2_clk_tmp;
-    assign ps2_controller_DUT.ps2_data = ps2_data_tmp;
+    assign ps2_data_input_DUT.ps2_clk = ps2_clk_tmp;
+    assign ps2_data_input_DUT.ps2_data = ps2_data_tmp;
     
     initial begin
         $dumpfile("tb_ps2_controller.vcd");
