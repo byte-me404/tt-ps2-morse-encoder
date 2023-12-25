@@ -46,7 +46,7 @@ module morse_code_encoder (
     localparam SIZE_DATA_COUNTER   = 4;     // 4-Bit counter
     localparam SIZE_TIMING_COUNTER = 25;    // 25-Bit counter
 
-    // Counter values for tone generation
+    // Counter values for tone generation, about 15 WPM (Word per Minute)
     localparam [SIZE_TIMING_COUNTER-1:0] DIT_TIME             = 4000000;    // Testing:	40000
     localparam [SIZE_TIMING_COUNTER-1:0] DAH_TIME             = 12000000;   // Testing:	120000
     localparam [SIZE_TIMING_COUNTER-1:0] BETWEEN_DIT_DAH_TIME = 4000000;  	// Testing:	40000
@@ -60,7 +60,7 @@ module morse_code_encoder (
     localparam F1_KEY     = 8'h05;
     localparam F2_KEY     = 8'h0C;
     
-    // Internal Registers
+    // Internal registers
     reg [(BUFFER_LENGTH*8)-1:0]   data_shift_reg;
     reg [(BUFFER_LENGTH*8)-1:0]   next_data_shift_reg;
     reg [(BUFFER_LENGTH*8)-1:0]   tmp_data_shift_reg;
