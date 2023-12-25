@@ -3,15 +3,15 @@
 
 module ps2_data_input (
     // Inputs
-    input            clk,
-    input            rst,
-    input            start_receiving_data,
-    input            ps2_clk_posedge,
-    input            ps2_data,
+    input        clk,
+    input        rst,
+    input        start_receiving_data,
+    input        ps2_clk_posedge,
+    input        ps2_data,
 
     // Outputs
-    output reg [7:0] ps2_received_data,
-    output reg       ps2_received_data_strb
+    output [7:0] ps2_received_data,
+    output       ps2_received_data_strb
 );
 
     // Internal registers
@@ -25,7 +25,6 @@ module ps2_data_input (
     reg [7:0] next_received_data_strb;
     reg [2:0] receiver_state;
     reg [2:0] next_receiver_state;
-
 
     // FSM-States
     localparam PS2_STATE_0_IDLE      = 3'h0,
@@ -43,7 +42,7 @@ module ps2_data_input (
             received_data_strb <= 1'b0;
         end else begin
             receiver_state     <= next_receiver_state;
-            data_counter       <= next_data_count;
+            data_count         <= next_data_count;
             data_shift_reg     <= next_data_shift_reg;
             received_data      <= next_received_data;
             received_data_strb <= next_received_data_strb;
