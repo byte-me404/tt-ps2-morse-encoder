@@ -90,7 +90,7 @@ module ps2_data_input (
                 begin
                     if (ps2_clk_posedge) begin
                         next_receiver_state = PS2_STATE_0_IDLE;
-                        next_received_data_strb <= 1'b1;
+                        next_received_data_strb = 1'b1;
                     end else begin
                         next_receiver_state = PS2_STATE_3_STOP_IN;
                         next_received_data_strb = 1'b0;
