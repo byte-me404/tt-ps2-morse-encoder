@@ -42,7 +42,7 @@ module morse_code_encoder (
 );
 
     // Constant parameters
-    localparam BUFFER_LENGTH       = 16;    // Input buffer
+    localparam BUFFER_LENGTH       = 15;    // Input buffer
     localparam SIZE_DATA_COUNTER   = 4;     // 4-Bit counter
     localparam SIZE_TIMING_COUNTER = 25;    // 25-Bit counter
 
@@ -63,8 +63,6 @@ module morse_code_encoder (
     // Internal registers
     reg [(BUFFER_LENGTH*8)-1:0]   data_shift_reg;
     reg [(BUFFER_LENGTH*8)-1:0]   next_data_shift_reg;
-    reg [(BUFFER_LENGTH*8)-1:0]   tmp_data_shift_reg;
-    reg [(BUFFER_LENGTH*8)-1:0]   next_tmp_data_shift_reg;
     reg [SIZE_DATA_COUNTER-1:0]   data_counter;
     reg [SIZE_DATA_COUNTER-1:0]   next_data_counter;
     reg [SIZE_TIMING_COUNTER-1:0] timing_counter;
@@ -94,7 +92,6 @@ module morse_code_encoder (
     always @(posedge clk) begin
         if (rst) begin
             data_shift_reg      <= {BUFFER_LENGTH*8{1'b0}};
-            tmp_data_shift_reg  <= {BUFFER_LENGTH*8{1'b0}};
             data_counter        <= {SIZE_DATA_COUNTER{1'b1}};
             timing_counter      <= {SIZE_TIMING_COUNTER{1'b0}};
             encoding_state      <= ENCODING_STATE_0_IDLE;
@@ -104,7 +101,6 @@ module morse_code_encoder (
             dah                 <= 1'b0;
         end else begin
             data_shift_reg      <= next_data_shift_reg;
-            tmp_data_shift_reg  <= next_tmp_data_shift_reg;
             data_counter        <= next_data_counter;
             timing_counter      <= next_timing_counter;
             encoding_state      <= next_encoding_state;
@@ -119,7 +115,6 @@ module morse_code_encoder (
     always @(*) begin
         // Default assignment
         next_data_shift_reg     = data_shift_reg;
-        next_tmp_data_shift_reg = tmp_data_shift_reg;
         next_data_counter       = data_counter;
         next_timing_counter     = timing_counter;
         next_encoding_state     = ENCODING_STATE_0_IDLE;
@@ -185,7 +180,7 @@ module morse_code_encoder (
             ENCODING_STATE_4_DATA_OUT:
                 begin
                     next_encoding_state = ENCODING_STATE_4_DATA_OUT;
-                
+
                     if (timing_counter == {SIZE_TIMING_COUNTER{1'b1}}) begin
                         // Reset timing counter
                         next_timing_counter = {SIZE_TIMING_COUNTER{1'b0}};
