@@ -42,7 +42,7 @@ module morse_code_encoder (
 );
 
     // Constant parameters
-    localparam BUFFER_LENGTH       = 15;    // Input buffer
+    localparam BUFFER_LENGTH       = 4'hE;  // Input buffer (14)
     localparam SIZE_DATA_COUNTER   = 4;     // 4-Bit counter
     localparam SIZE_TIMING_COUNTER = 25;    // 25-Bit counter
 
@@ -92,7 +92,7 @@ module morse_code_encoder (
     always @(posedge clk) begin
         if (rst) begin
             data_shift_reg      <= {BUFFER_LENGTH*8{1'b0}};
-            data_counter        <= {SIZE_DATA_COUNTER{1'b1}};
+            data_counter        <= BUFFER_LENGTH - 4'h1;
             timing_counter      <= {SIZE_TIMING_COUNTER{1'b0}};
             encoding_state      <= ENCODING_STATE_0_IDLE;
             current_scancode    <= DEFAULT_SCANCODE;
@@ -201,9 +201,9 @@ module morse_code_encoder (
                         COUNT_DOWN:
                             begin
                                 if (data_counter == {SIZE_DATA_COUNTER{1'b0}}) begin
-                                    next_data_counter   = {SIZE_DATA_COUNTER{1'b1}};    // Reset data counter
-                                    next_data_shift_reg = {BUFFER_LENGTH*8{1'b0}};      // Cleare receive buffer
-                                    next_encoding_state = ENCODING_STATE_0_IDLE;        // Next state --> Wait for data
+                                    next_data_counter   = BUFFER_LENGTH - 4'h1;    // Reset data counter
+                                    next_data_shift_reg = {BUFFER_LENGTH*8{1'b0}}; // Clear receive buffer
+                                    next_encoding_state = ENCODING_STATE_0_IDLE;   // Next state --> Wait for data
                                 end else begin
                                     // Decrement the data counter to get the next scan code in the next state
                                     next_data_counter = data_counter - {{(SIZE_DATA_COUNTER-1){1'b0}}, 1'b1};
