@@ -211,7 +211,7 @@ module morse_code_encoder (
                                     next_encoding_state = ENCODING_STATE_0_IDLE;        // Next state --> Wait for data
                                 end else begin
                                     // Decrement the data counter to get the next scan code in the next state
-                                    next_data_counter   = data_counter - {{(SIZE_DATA_COUNTER-1){1'b0}}, 1'b1};
+                                    next_data_counter = data_counter - {{(SIZE_DATA_COUNTER-1){1'b0}}, 1'b1};
                                 end
                                 next_scancode = DEFAULT_SCANCODE;
                             end    
@@ -229,7 +229,7 @@ module morse_code_encoder (
                                     next_dah = 1'b0;
                                 else begin
                                     next_scancode = COUNT_DOWN;
-                            	end
+                                end
                             end
                         8'h32:    // B
                             begin
