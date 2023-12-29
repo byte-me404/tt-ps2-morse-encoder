@@ -51,7 +51,6 @@ module ps2_controller (
     reg [2:0] next_receiver_state;
     reg       received_data_strb;
     reg       next_received_data_strb;
-    reg       ps2_clk_reg;
     reg       last_ps2_clk;
 
     // FSM-States
@@ -68,15 +67,13 @@ module ps2_controller (
             data_shift_reg     <= 8'h00;
             received_data      <= 8'h00;
             received_data_strb <= 1'b0;
-            ps2_clk_reg        <= 1'b1;
         end else begin
             receiver_state     <= next_receiver_state;
             data_count         <= next_data_count;
             data_shift_reg     <= next_data_shift_reg;
             received_data      <= next_received_data;
             received_data_strb <= next_received_data_strb;
-            last_ps2_clk       <= ps2_clk_reg;
-            ps2_clk_reg        <= ps2_clk;
+            last_ps2_clk       <= ps2_clk;
         end
     end
 
@@ -148,6 +145,6 @@ module ps2_controller (
     // Combinatoric logic
     assign ps2_received_data      = received_data;
     assign ps2_received_data_strb = received_data_strb;
-    assign ps2_clk_posedge        = (ps2_clk_reg && !last_ps2_clk) ? 1'b1 : 1'b0;
-    
+    assign ps2_clk_posedge        = (ps2_clk && !last_ps2_clk) ? 1'b1 : 1'b0;
+
 endmodule
