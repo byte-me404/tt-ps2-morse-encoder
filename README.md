@@ -50,6 +50,6 @@ If you don't have a PS/2 keyboard, you can also use a USB keyboard. Many but not
 In this case D+ is clock and D- is data (don't forget the pull-up resitors and the level shifter).
 
 
-# What is Tiny Tapeout?
+## What is Tiny Tapeout?
 [Tiny Tapeout](https://tinytapeout.com) is an educational and open source project that aims to make it easier and cheaper than ever to get your digital designs manufactured on a real chip.
 
