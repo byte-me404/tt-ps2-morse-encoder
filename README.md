@@ -1,7 +1,9 @@
 ![](../../workflows/gds/badge.svg) ![](../../workflows/docs/badge.svg) ![](../../workflows/test/badge.svg)
 
 # PS/2 Keyboard to Morse Code Encoder
-The aim of this project is to design my own ASIC. Specifically, it is a digital IC. The chip is produced as part of the [Tiny Tapeout](https://tinytapeout.com) project.
+The aim of this project is to design my own ASIC.
+The project was implemented during a course at the Johannes Kepler University Linz ([JKU](https://www.jku.at/)).
+The chip is produced as part of the [Tiny Tapeout](https://tinytapeout.com) project.
 
 A morse code encoder was chosen as the design for the chip. For this the output of a [PS/2](https://en.wikipedia.org/wiki/PS/2_port) keyboard is evaluated,
 if a key is pressed on the keyboard, the input is stored in a 14-bit temporary buffer.
@@ -17,11 +19,9 @@ A further output is a combination of dit and dah. This output is active when a d
 The last output is intended for connecting a buzzer or a small speaker. This output emits a 600Hz square wave signal when either a dit or a dah is output.
 
 ## Silicon
-The chip is produced as part of the [Tiny Tapeout](https://tinytapeout.com) project. If everything runs smoothly, this project will take part in TT06.
+The chip is produced as part of the Tiny Tapeout project. If everything runs smoothly, this project will take part in TT06.
 The design requires a 1x1 tile and achieves a utilization of approx. 80%, for which approx. 1380 logic cells are required.
-<p align="center">
-  <img src="https://github.com/byte-me404/tt-ps2-morse-encoder/tree/main/picture/gds_render.png" width="600" title="GDS render">
-</p>
+![GDS render](pictures/gds_render.png)
 
 ## Code
 This project is written in Verilog. It's my first Verilog project, so forgive me for possible bugs and inefficient code.
@@ -30,9 +30,7 @@ One module for decoding the PS/2 data from the keyboard that evaluates the data 
 Another module generates the morse code output based on the keyboard input, and one additional module generates the 600Hz square wave signal.
 Across the modules, multiple finite state machines (FSM) are used.
 The exact implementation and a testbench can be found in the src folder.
-<p align="center">
-  <img src="https://github.com/byte-me404/tt-ps2-morse-encoder/tree/main/picture/verilog_block.png" width="1000" title="Verilog project block diagram">
-</p>
+![Verilog project block diagram](pictures/verilog_block.png)
 
 
 ## How to Test the Design
