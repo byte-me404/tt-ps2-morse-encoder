@@ -19,10 +19,10 @@
  * Description:
         If input 'ps2_received_data_strb' is high, the data from 'ps2_received_data' is stored in an internal buffer (shift register).
         The mode can be changed with F1 and F4. In mode 1 (F1), the data is output when scancode
-        '5A' (ENTER) is present --> data in the shift register is output in sequence as morse code.
+        '5A' (ENTER) is present --> data in the shift register is output in sequence as Morse code.
         In mode 2 (F4), the data is output when scan code '29' (SPACE) is present.
-        The generation of the morse code is realized by a counter.
-        The timings are configured so that a morse signal of approx. 15 WPM is generated.
+        The generation of the Morse code is realized by a counter.
+        The timings are configured so that a Morse signal of approx. 15 WPM is generated.
         'dit_out' and 'dah_out' are used as outputs.
 */
 
